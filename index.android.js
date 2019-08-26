@@ -12,6 +12,16 @@ module.exports = {
     });
   },
 
+  getNonceWithThreeDSecure(parameters = {}) {
+    return new Promise(function(resolve, reject) {
+      Braintree.getNonceWithThreeDSecure(
+        mapParameters(parameters),
+        nonce => resolve(nonce),
+        err => reject(err)
+      );
+    });
+  },
+
   getCardNonce(parameters = {}) {
     return new Promise(function(resolve, reject) {
       Braintree.getCardNonce(
