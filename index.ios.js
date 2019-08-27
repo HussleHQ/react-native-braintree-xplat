@@ -26,6 +26,32 @@ var Braintree = {
     });
   },
 
+  getNonceWithThreeDSecure(parameters = {}) {
+    return new Promise(function(resolve, reject) {
+      RCTBraintree.getNonceWithThreeDSecure(parameters, function(
+        err,
+        nonce
+      ) {
+        let jsonErr = null;
+
+        try {
+          jsonErr = JSON.parse(err);
+        } catch (e) {
+          //
+        }
+
+        nonce !== null
+          ? resolve(nonce)
+          : reject(
+              jsonErr
+                ? jsonErr['BTCustomerInputBraintreeValidationErrorsKey'] ||
+                  jsonErr
+                : err
+            );
+      });
+    });
+  },
+
   showPaymentViewController(config = {}) {
     var options = {
       tintColor: processColor(config.tintColor),
