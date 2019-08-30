@@ -6,8 +6,16 @@
 //
 
 #import "PPOTSwitchRequest.h"
+#if __has_include("PPOTMacros.h")
 #import "PPOTMacros.h"
+#else
+#import <PayPalUtils/PPOTMacros.h>
+#endif
+#if __has_include("PPDataCollector_Internal.h")
 #import "PPDataCollector_Internal.h"
+#else
+#import <PayPalDataCollector/PPDataCollector_Internal.h>
+#endif
 
 @implementation PPOTSwitchRequest
 
@@ -33,7 +41,7 @@
         _environment = environment;
         _responseType = PPAppSwitchResponseTypeUnknown;
         _callbackURLScheme = callbackURLScheme;
-        _clientMetadataID = [PPDataCollector generateClientMetadataID:pairingId];
+        _clientMetadataID = [PPDataCollector generateClientMetadataID:pairingId disableBeacon:NO data:nil];
     }
     return self;
 }

@@ -49,40 +49,40 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"Drop-in";
+    self.title = NSLocalizedString(@"Drop-in", nil);
     self.cartLabel = [[UILabel alloc] init];
-    [self.cartLabel setText:@"CART"];
+    [self.cartLabel setText:NSLocalizedString(@"CART", nil)];
     self.cartLabel.font = [UIFont systemFontOfSize:[UIFont smallSystemFontSize]];
     [self.cartLabel setTextColor:[UIColor grayColor]];
     self.cartLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:self.cartLabel];
 
     self.itemLabel = [[UILabel alloc] init];
-    [self.itemLabel setText:@"1 Sock"];
+    [self.itemLabel setText:NSLocalizedString(@"1 Sock", nil)];
     self.itemLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:self.itemLabel];
 
     self.priceLabel = [[UILabel alloc] init];
-    [self.priceLabel setText:@"$100"];
+    [self.priceLabel setText:NSLocalizedString(@"$100", nil)];
     self.priceLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:self.priceLabel];
 
     self.paymentMethodHeaderLabel = [[UILabel alloc] init];
-    [self.paymentMethodHeaderLabel setText:@"PAYMENT METHODS"];
+    [self.paymentMethodHeaderLabel setText:NSLocalizedString(@"PAYMENT METHODS", nil)];
     [self.paymentMethodHeaderLabel setTextColor:[UIColor grayColor]];
     self.paymentMethodHeaderLabel.font = [UIFont systemFontOfSize:[UIFont smallSystemFontSize]];
     self.paymentMethodHeaderLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:self.paymentMethodHeaderLabel];
 
     self.dropInButton = [[UIButton alloc] init];
-    [self.dropInButton setTitle:@"Select Payment Method" forState:UIControlStateNormal];
+    [self.dropInButton setTitle:NSLocalizedString(@"Select Payment Method", nil) forState:UIControlStateNormal];
     [self.dropInButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
     self.dropInButton.translatesAutoresizingMaskIntoConstraints = NO;
     [self.dropInButton addTarget:self action:@selector(tappedToShowDropIn) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.dropInButton];
 
     self.purchaseButton = [[UIButton alloc] init];
-    [self.purchaseButton setTitle:@"Complete Purchase" forState:UIControlStateNormal];
+    [self.purchaseButton setTitle:NSLocalizedString(@"Complete Purchase", nil) forState:UIControlStateNormal];
     [self.purchaseButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.purchaseButton setTitleColor:[[UIColor whiteColor] colorWithAlphaComponent:0.8] forState:UIControlStateHighlighted];
     self.purchaseButton.backgroundColor = self.view.tintColor;
@@ -134,7 +134,7 @@
     self.paymentMethodTypeLabel.hidden = NO;
     self.paymentMethodTypeIcon.hidden = NO;
     self.paymentMethodTypeIcon.paymentOptionType = BTUIKPaymentOptionTypeApplePay;
-    [self.paymentMethodTypeLabel setText:@"Apple Pay"];
+    [self.paymentMethodTypeLabel setText:NSLocalizedString(@"Apple Pay", nil)];
     self.useApplePay = YES;
     [self updatePaymentMethodConstraints];
 }
@@ -172,14 +172,14 @@
 
         [newConstraints addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[paymentMethodTypeIcon(45)]-[paymentMethodTypeLabel]" options:NSLayoutFormatAlignAllCenterY metrics:nil views:viewBindings]];
         [newConstraints addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[dropInButton]-|" options:0 metrics:nil views:viewBindings]];
-        [self.dropInButton setTitle:@"Change Payment Method" forState:UIControlStateNormal];
+        [self.dropInButton setTitle:NSLocalizedString(@"Change Payment Method", nil) forState:UIControlStateNormal];
         self.purchaseButton.backgroundColor = self.view.tintColor;
         self.purchaseButton.enabled = YES;
     } else {
         [newConstraints addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[paymentMethodHeaderLabel]-[dropInButton]" options:0 metrics:nil views:viewBindings]];
 
         [newConstraints addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[dropInButton]-|" options:0 metrics:nil views:viewBindings]];
-        [self.dropInButton setTitle:@"Add Payment Method" forState:UIControlStateNormal];
+        [self.dropInButton setTitle:NSLocalizedString(@"Add Payment Method", nil) forState:UIControlStateNormal];
         self.purchaseButton.backgroundColor = [UIColor lightGrayColor];
         self.purchaseButton.enabled = NO;
     }
@@ -287,7 +287,6 @@
     [controller dismissViewControllerAnimated:YES completion:nil];
 }
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
 - (void)paymentAuthorizationViewController:(__unused PKPaymentAuthorizationViewController *)controller didAuthorizePayment:(PKPayment *)payment handler:(void (^)(PKPaymentAuthorizationResult * _Nonnull))completion API_AVAILABLE(ios(11.0), watchos(4.0)) {
     self.progressBlock(@"Apple Pay Did Authorize Payment");
     BTAPIClient *client = [[BTAPIClient alloc] initWithAuthorization:self.authorizationString];
@@ -302,7 +301,6 @@
         }
     }];
 }
-#endif
 
 - (void)paymentAuthorizationViewController:(__unused PKPaymentAuthorizationViewController *)controller
                        didAuthorizePayment:(PKPayment *)payment

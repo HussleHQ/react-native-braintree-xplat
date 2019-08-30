@@ -1,5 +1,156 @@
 # Braintree iOS SDK Release Notes
 
+## 4.27.0 (2019-08-15)
+
+* Remove unneeded pre-processor directives
+* Added new fields to BTThreeDSecureInfo
+
+## 4.26.3 (2019-07-31)
+
+* Fixed issue with Carthage binary spec for CardinalMobile
+
+## 4.26.2 (2019-07-31)
+
+* Add support for CardinalMobile binary only framework when using Carthage
+
+## 4.26.1 (2019-07-26)
+
+* Update CardinalMobile to v2.1.4-2
+  * Fix issue distributing to App Store
+
+## 4.26.0 (2019-07-26)
+
+* Send analytics timestamps in milliseconds
+* Fix crash on apps with deployment targets without minor version (thanks @squall09s)
+* Add additional fields to BTThreeDSecureInfo
+
+## 4.25.1 (2019-07-15)
+
+* Correct importing of BTConfiguration+ThreeDSecure (thanks @ejensen)
+* Add missing header documentation for BTThreeDSecureLookup
+
+## 4.25.0 (2019-07-12)
+
+* Update CardinalMobile to v2.1.4
+  * Remove use of `advertisingIdentifier`
+
+## 4.24.0 (2019-07-09)
+
+* Add 3DS 2 Support
+* Update 3DS redirect to newest version
+* Update platform to iOS 8.0 in podspec
+* Remove location data from analytics collection
+
+## 4.23.2 (2019-06-20)
+
+* Fix issue that caused a crash when 3DS auth response is invalid
+
+## 4.23.1 (2019-06-17)
+
+* Update analytics parameters
+* Update local payment endpoint
+
+## 4.23.0 (2019-03-07)
+
+* Add Hiper and Hipercard support
+
+## 4.22.0 (2019-01-30)
+
+* Add support for `BTPayPalLineItem`
+* Fix build issue for Demo app
+
+## 4.21.0 (2018-12-12)
+
+* Fix occasional crash in `libPPRiskComponent.a`
+
+## 4.20.2 (2018-11-16)
+
+* Fix minimum iOS version in `libPPRiskComponent.a`
+
+## 4.20.1 (2018-11-14)
+
+* Update `libPPRiskComponent.a` to latest version
+
+## 4.20.0 (2018-10-30)
+
+* Luhn validate UnionPay cards
+  * Luhn-invalid UnionPay cards were previously rejected server side rather than client side
+* Fix retain cycle when ovewriting an NSURLSession
+* Update `PayPalDataCollector` to include latest `libPPRiskComponent.a`
+
+## 4.19.0 (2018-09-13)
+
+* Update properties on BTLocalPaymentRequest
+
+## 4.18.0 (2018-08-31)
+
+* Add optional merchantAccountId to BTPayPalRequest
+* Add openVenmoAppPageInAppStore to BTVenmoDriver
+* Add BTLocalPayment to BTPaymentFlow
+  * Replaces the BTIdeal integration
+
+## 4.17.0 (2018-07-17)
+
+* Update GraphQL URLs
+
+## 4.16.0 (2018-06-15)
+
+* Add shippingAddressEditable flag to BTPayPalRequest
+
+## 4.15.2 (2018-06-13)
+
+* Fix issue where address override was not set for PayPal billing agreements
+
+## 4.15.1 (2018-06-07)
+
+* Use angled brackets for BraintreeVenmo header imports (thanks @vicpenap)
+
+## 4.15.0 (2018-04-30)
+
+* 3D Secure
+  * Add support for American Express SafeKey params
+
+## 4.14.0 (2018-04-03)
+
+* Ensure animations are consistent for PayPal SFSafariViewController flow (thanks @nudge)
+* Update header documentation
+* Add BTAppSwitchDelegate events `appContextWillSwitch` and `appContextDidReturn`
+  * Addresses the issue that notifications were inconsistent across app switches [#383](https://github.com/braintree/braintree_ios/issues/383)
+
+## 4.13.0 (2018-03-20)
+
+* Update `PayPalDataCollector` to include latest `libPPRiskComponent.a`
+
+## 4.12.0 (2018-03-06)
+
+* Add support for Venmo profiles
+* Fix demo app issue with CocoaPods
+
+## 4.11.0 (2018-02-05)
+
+* Fix code for implicit retain self warning (thanks @keith)
+
+## 4.10.1 (2018-02-01)
+
+* Add BTThreeDSecureInfo to BTCardNonce
+* Use angled brackets for BraintreePayPal header imports (thanks @nudge)
+
+## 4.10.0 (2017-12-08)
+
+* Add iDEAL support
+* Add new 3D Secure integration with browser support
+* Fix issue where ApplePay nonces were not having their default property set (Thanks @rksaraf)
+
+## 4.9.6 (2017-11-13)
+
+* Fix issue where Venmo attempted to vault when using a Tokenization Key
+
+## 4.9.5 (2017-11-03)
+
+* Fix a timeout issue on configuration fetch
+* Static analysis fixes
+* Add BraintreeAmericanExpress module and getRewardsBalance method
+
 ## 4.9.4 (2017-10-02)
 
 * Fix Xcode9 compatibility issues with iOS 7.0

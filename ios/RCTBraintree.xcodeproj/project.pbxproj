@@ -15,6 +15,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		256D6AE22316DF30009114BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DE6D1C611D16F56100DA995F /* Braintree.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0357C47C1F96869600E63851;
+			remoteInfo = BraintreeAmericanExpress;
+		};
+		256D6AE42316DF30009114BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DE6D1C611D16F56100DA995F /* Braintree.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03502C841E9C0A1700F15EE6;
+			remoteInfo = BraintreePaymentFlow;
+		};
 		DE6D1C771D16F56100DA995F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DE6D1C611D16F56100DA995F /* Braintree.xcodeproj */;
@@ -244,6 +258,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		256D6B0D2316E4F2009114BA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		DE4F06C31D156AA8005F99CD = {
 			isa = PBXGroup;
 			children = (
@@ -253,6 +274,7 @@
 				DE4F07911D15750D005F99CD /* UI.strings */,
 				DE4F06CE1D156AA8005F99CD /* RCTBraintree */,
 				DE4F06CD1D156AA8005F99CD /* Products */,
+				256D6B0D2316E4F2009114BA /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -281,10 +303,12 @@
 				DE6D1C7C1D16F56100DA995F /* UnitTests.xctest */,
 				DE6D1C7E1D16F56100DA995F /* libBraintree.a */,
 				DE6D1C801D16F56100DA995F /* Braintree3DSecure.framework */,
+				256D6AE32316DF30009114BA /* BraintreeAmericanExpress.framework */,
 				DE6D1C821D16F56100DA995F /* BraintreeApplePay.framework */,
 				DE6D1C841D16F56100DA995F /* BraintreeCard.framework */,
 				DE6D1C861D16F56100DA995F /* BraintreeCore.framework */,
 				DE6D1C881D16F56100DA995F /* BraintreeDataCollector.framework */,
+				256D6AE52316DF30009114BA /* BraintreePaymentFlow.framework */,
 				DE6D1C8A1D16F56100DA995F /* BraintreePayPal.framework */,
 				DE6D1C8C1D16F56100DA995F /* BraintreeVenmo.framework */,
 				DE6D1C8E1D16F56100DA995F /* BraintreeUI.framework */,
@@ -339,7 +363,28 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
+				da,
+				de,
+				"en-AU",
+				"en-CA",
+				"en-GB",
+				es,
+				"es-ES",
+				fr,
+				"fr-CA",
+				"fr-FR",
+				he,
+				it,
+				nb,
+				nl,
+				pl,
+				pt,
+				ru,
+				sv,
+				tr,
+				"zh-Hans",
 			);
 			mainGroup = DE4F06C31D156AA8005F99CD;
 			productRefGroup = DE4F06CD1D156AA8005F99CD /* Products */;
@@ -358,6 +403,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		256D6AE32316DF30009114BA /* BraintreeAmericanExpress.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = BraintreeAmericanExpress.framework;
+			remoteRef = 256D6AE22316DF30009114BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		256D6AE52316DF30009114BA /* BraintreePaymentFlow.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = BraintreePaymentFlow.framework;
+			remoteRef = 256D6AE42316DF30009114BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		DE6D1C781D16F56100DA995F /* Demo.app */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.application;

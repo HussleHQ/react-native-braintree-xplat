@@ -9,6 +9,7 @@
 #import "RCTBraintree.h"
 #import <Braintree3DSecure.h>
 #import <BraintreeUI.h>
+#import <BTThreeDSecureRequest.h>
 
 @implementation RCTBraintree {
     bool runCallback;
@@ -32,6 +33,13 @@ static NSString *URLScheme;
                               initWithEnvironment:BTDataCollectorEnvironmentProduction];
     }
     return self;
+}
+
+#pragma mark BTThreeDSecureRequestDelegate
+
+- (void)onLookupComplete:(__unused BTThreeDSecureRequest *)request result:(__unused BTThreeDSecureLookup *)lookup next:(void (^)(void))next {
+    // Optionally inspect the lookup result and prepare UI if a challenge is required
+    next();
 }
 
 RCT_EXPORT_MODULE();
@@ -163,7 +171,6 @@ RCT_EXPORT_METHOD(getCardNonce: (NSDictionary *)parameters callback: (RCTRespons
                               args = @[jsonString, [NSNull null]];
                           }
                       }
-                    
                       callback(args);
                   }];
 }
@@ -222,102 +229,64 @@ RCT_EXPORT_METHOD(getCardNonceWithThreeDSecure: (NSDictionary *)parameters callb
 
 RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback: (RCTResponseSenderBlock)callback)
 {
-//    NSDecimalNumber *amount = parameters[@"amount"];
+    BTPaymentFlowDriver *paymentFlowDriver = [[BTPaymentFlowDriver alloc] initWithAPIClient:self.braintreeClient];
+    paymentFlowDriver.viewControllerPresentingDelegate = self;
+    
+    NSDecimalNumber *amount = parameters[@"amount"];
     NSString *nonce = parameters[@"nonce"];
+//    NSString *givenName = parameters[@"givenName"];
+//    NSString *surname = parameters[@"surname"];
     
-//    [self.braintreeClient tokenizeCard:details completion:^(BTCardNonce *tokenizedCard, NSError *error) {
-//        if (error) {
-//            // Handle errors
-//            return;
-//        }
-//
-//        BTThreeDSecureRequest *request = [[BTThreeDSecureRequest alloc] init];
-//        request.amount = [NSDecimalNumber decimalNumberWithString:@"10"];
-//        request.nonce = tokenizedCard.nonce;
-//        request.email = @"test@email.com";
-//        request.versionRequested = BTThreeDSecureVersion2;
-//
-//        // Make sure that self conforms to the BTThreeDSecureRequestDelegate protocol
-//        request.threeDSecureRequestDelegate = self;
-//
-//        BTThreeDSecurePostalAddress *address = [BTThreeDSecurePostalAddress new];
-//        address.givenName = @"Jill";
-//        address.surname = @"Doe";
-//
-//        // Optional additional information.
-//        // For best results, provide as many of these elements as possible.
-//        BTThreeDSecureAdditionalInformation *additionalInformation = [BTThreeDSecureAdditionalInformation new];
-//        additionalInformation.shippingAddress = address;
-//        request.additionalInformation = additionalInformation;
-//
-//        [self.paymentFlowDriver startPaymentFlow:request completion:^(BTPaymentFlowResult * _Nonnull result, NSError * _Nonnull error) {
-//            if (error) {
-//                // Handle error
-//            } else if (result) {
-//                BTThreeDSecureResult *threeDSecureResult = (BTThreeDSecureResult *)result;
-//
-//                if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShiftPossible) {
-//                    if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShifted) {
-//                        // 3D Secure authentication success
-//                    } else {
-//                        // 3D Secure authentication failed
-//                    }
-//                } else {
-//                    // 3D Secure authentication was not possible
-//                }
-//
-//                // Use the `threeDSecureResult.tokenizedCard.nonce`
-//            }
-//        }];
-//    }];
+    BTThreeDSecureRequest *request = [[BTThreeDSecureRequest alloc] init];
+    BTThreeDSecurePostalAddress *billingAddress = [BTThreeDSecurePostalAddress new];
+    BTThreeDSecureAdditionalInformation *additionalInformation = [BTThreeDSecureAdditionalInformation new];
     
-    return callback(@[[NSNull null], nonce]);
+    request.amount = amount;
+    request.nonce = nonce;
+    request.versionRequested = BTThreeDSecureVersion2;
+//    billingAddress.givenName = givenName;
+//    billingAddress.surname = surname;
+//    additionalInformation.shippingAddress = billingAddress;
+//    request.additionalInformation = additionalInformation;
+
+    // Make sure that self conforms to the BTThreeDSecureRequestDelegate protocol
+    request.threeDSecureRequestDelegate = self;
     
-//    BTCardClient *cardClient = [[BTCardClient alloc] initWithAPIClient: self.braintreeClient];
-//    BTCard *card = [[BTCard alloc] initWithParameters:cardDetails];
-//    card.shouldValidate = YES;
-//
-//    [cardClient tokenizeCard:card completion:^(BTCardNonce *tokenizedCard, NSError *error) {
-//        __block NSArray *args = @[];
-//
-//        if (error == nil) {
-//            BTThreeDSecureDriver *threeDSecure = [[BTThreeDSecureDriver alloc] initWithAPIClient:self.braintreeClient delegate:self];
-//
-//            [threeDSecure verifyCardWithNonce:tokenizedCard.nonce amount:amount completion:^(BTThreeDSecureCardNonce * _Nullable threeDSecureCard, NSError * _Nullable error) {
-//                if (error) {
-//                    return callback(@[error.localizedDescription, [NSNull null]]);
-//                } else if (threeDSecureCard) {
-//                    if (!threeDSecureCard.liabilityShiftPossible)
-//                        return callback(@[[NSNull null], tokenizedCard.nonce]);
-//
-//                    if (threeDSecureCard.liabilityShifted)
-//                        return callback(@[[NSNull null], threeDSecureCard.nonce]);
-//
-//                    return callback(@[@"3DSECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED", [NSNull null]]);
-//                } else {
-//                    // User Cancelled
-//                    return callback(@[[NSNull null], [NSNull null]]);
-//                }
-//            }];
-//        } else {
-//            NSMutableDictionary *userInfo = [error.userInfo mutableCopy];
-//
-//            [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPJSONResponseBodyKey"];
-//            [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPURLResponseKey"];
-//
-//            NSError *serialisationErr;
-//            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:&serialisationErr];
-//
-//            if (!jsonData) {
-//                args = @[serialisationErr.description, [NSNull null]];
-//            } else {
-//                NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-//                args = @[jsonString, [NSNull null]];
-//            }
-//
-//            callback(args);
-//        }
-//    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [paymentFlowDriver startPaymentFlow:request completion:^(BTPaymentFlowResult * _Nonnull result, NSError * _Nonnull error) {
+            if (error) {
+                NSMutableDictionary *userInfo = [error.userInfo mutableCopy];
+                
+                [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPJSONResponseBodyKey"];
+                [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPURLResponseKey"];
+                
+                NSError *serialisationErr;
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:&serialisationErr];
+                
+                if (!jsonData) {
+                    return callback(@[serialisationErr.description, [NSNull null]]);
+                } else {
+                    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    return callback(@[jsonString, [NSNull null]]);
+                }
+            } else if (result) {
+                BTThreeDSecureResult *threeDSecureResult = (BTThreeDSecureResult *)result;
+
+                if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShiftPossible) {
+                    if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShifted) {
+                        // 3D Secure authentication success
+                        return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
+                    } else {
+                        // 3D Secure authentication failed
+                        return callback(@[@"3DS_AUTH_FAILED", [NSNull null]]);
+                    }
+                } else {
+                    // 3D Secure authentication was not possible
+                     return callback(@[@"NOT_POSSIBLE", [NSNull null]]);
+                }
+            }
+        }];
+    });
 }
 
 RCT_EXPORT_METHOD(getDeviceData:(NSDictionary *)options callback:(RCTResponseSenderBlock)callback)

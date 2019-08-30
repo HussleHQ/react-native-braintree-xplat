@@ -27,7 +27,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
             }
             
             XCTAssertNil(cardNonce)
-            XCTAssertEqual(error as NSError, stubConfigurationHTTP.cannedError as! NSError)
+            XCTAssertEqual(error as NSError, stubConfigurationHTTP.cannedError! as NSError)
             expectation.fulfill()
         }
 
@@ -58,7 +58,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let expectation = self.expectation(description: "Callback invoked")
         cardClient.fetchCapabilities(cardNumber) { (cardNonce, error) -> Void in
             XCTAssertNil(cardNonce)
-            guard let error = error as? NSError else {return}
+            guard let error = error as NSError? else {return}
             XCTAssertEqual(error.domain, BTCardClientErrorDomain)
             XCTAssertEqual(error.code, BTCardClientErrorType.paymentOptionNotEnabled.rawValue)
             XCTAssertEqual(error.localizedDescription, "UnionPay is not enabled for this merchant")
@@ -159,7 +159,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let expectation = self.expectation(description: "Callback invoked")
         cardClient.fetchCapabilities(cardNumber) { (cardCapabilities, error) -> Void in
             XCTAssertNil(cardCapabilities)
-            guard let error = error as? NSError else {return}
+            guard let error = error as NSError? else {return}
             XCTAssertEqual(error.domain, stubbedError.domain)
             XCTAssertEqual(error.code, stubbedError.code)
             expectation.fulfill()
@@ -206,7 +206,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let expectation = self.expectation(description: "Callback invoked")
         cardClient.enrollCard(request) { (enrollmentID, smsCodeRequired, error) -> Void in
             XCTAssertNil(enrollmentID)
-            guard let error = error as? NSError else {return}
+            guard let error = error as NSError? else {return}
             XCTAssertEqual(error.domain, BTCardClientErrorDomain)
             XCTAssertEqual(error.code, BTCardClientErrorType.paymentOptionNotEnabled.rawValue)
             XCTAssertEqual(error.localizedDescription, "UnionPay is not enabled for this merchant")
@@ -226,7 +226,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         request.mobilePhoneNumber = "321"
 
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             expectation.fulfill()
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -259,7 +259,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         request.mobilePhoneNumber = "321"
 
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             expectation.fulfill()
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -319,7 +319,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         cardClient.enrollCard(request) { (enrollmentID, smsCodeRequired, error) -> Void in
             XCTAssertNil(enrollmentID)
             XCTAssertFalse(smsCodeRequired)
-            guard let error = error as? NSError else {return}
+            guard let error = error as NSError? else {return}
             XCTAssertEqual(error.domain, BTCardClientErrorDomain)
             XCTAssertEqual(error.code, BTCardClientErrorType.customerInputInvalid.rawValue)
            
@@ -344,7 +344,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let request = BTCardRequest(card: card)
       
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             XCTAssertTrue(Thread.isMainThread)
             expectation.fulfill()
         }
@@ -361,7 +361,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let request = BTCardRequest(card: card)
       
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             XCTAssertEqual(mockAPIClient.postedAnalyticsEvents.last!, "ios.custom.unionpay.enrollment-failed")
             expectation.fulfill()
         }
@@ -380,7 +380,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let request = BTCardRequest(card: card)
       
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             XCTAssertTrue(Thread.isMainThread)
             expectation.fulfill()
         }
@@ -400,7 +400,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         let request = BTCardRequest(card: card)
       
         let expectation = self.expectation(description: "Callback invoked")
-        cardClient.enrollCard(request) { _ -> Void in
+        cardClient.enrollCard(request) { _,_,_  -> Void in
             XCTAssertEqual(mockAPIClient.postedAnalyticsEvents.last!, "ios.custom.unionpay.enrollment-succeeded")
             expectation.fulfill()
         }
@@ -421,7 +421,7 @@ class BTCardClient_UnionPayTests: XCTestCase {
         cardClient.enrollCard(request) { (enrollmentID, smsCodeRequired, error) -> Void in
             XCTAssertNil(enrollmentID)
             XCTAssertFalse(smsCodeRequired)
-            guard let error = error as? NSError else {return}
+            guard let error = error as NSError? else {return}
             XCTAssertEqual(error.domain, "FakeError")
             XCTAssertEqual(error.code, 1)
             expectation.fulfill()

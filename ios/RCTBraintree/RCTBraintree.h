@@ -17,13 +17,15 @@
 #import "Braintree3DSecure.h"
 #import "BTDataCollector.h"
 #import "PPDataCollector.h"
+#import "BraintreePaymentFlow.h"
 
-@interface RCTBraintree : UIViewController <RCTBridgeModule, BTDropInViewControllerDelegate, BTViewControllerPresentingDelegate>
+@interface RCTBraintree : UIViewController <RCTBridgeModule, BTDropInViewControllerDelegate, BTViewControllerPresentingDelegate, BTThreeDSecureRequestDelegate>
 
 @property (nonatomic, strong) BTAPIClient *braintreeClient;
 @property (nonatomic, strong, readwrite) BTThreeDSecureDriver *threeDSecure;
 @property (nonatomic, strong) UIViewController *reactRoot;
 @property (nonatomic, strong) BTDataCollector *dataCollector;
+@property (nonatomic, strong, readwrite) BTPaymentFlowDriver *paymentFlowDriver;
 
 @property (nonatomic, strong) RCTResponseSenderBlock callback;
 @property (nonatomic, strong) NSDictionary *threeDSecureOptions;

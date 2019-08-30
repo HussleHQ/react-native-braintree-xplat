@@ -36,7 +36,7 @@ class BTConfiguration_Tests: XCTestCase {
 
     func testIsVenmoEnabled_whenBetaVenmoIsEnabledAndAccessTokenNotPresent_returnsFalse() {
         let configurationJSON = BTJSON(value: [
-            "payWithVenmo": []
+            "payWithVenmo": [:]
             ])
         let configuration = BTConfiguration(json: configurationJSON)
 
@@ -50,6 +50,15 @@ class BTConfiguration_Tests: XCTestCase {
         let configuration = BTConfiguration(json: configurationJSON)
 
         XCTAssertEqual(configuration.venmoAccessToken, "some access token")
+    }
+
+    func testVenmoEnvironment_returnsVenmoEnvironment() {
+        let configurationJSON = BTJSON(value: [
+            "payWithVenmo": [ "environment": "rockbox" ]
+            ])
+        let configuration = BTConfiguration(json: configurationJSON)
+
+        XCTAssertEqual(configuration.venmoEnvironment, "rockbox")
     }
 
     func testEnableVenmo_whenDisabled_setsVenmoBetaPaymentOptionToFalse() {
@@ -208,6 +217,17 @@ class BTConfiguration_Tests: XCTestCase {
         let configuration = BTConfiguration(json: configurationJSON)
 
         XCTAssertFalse(configuration.isUnionPayEnabled)
+    }
+
+    // MARK: - PaymentFlow ThreeDSecure category methods
+
+    func testIsCardinalAuthenticationJWTReturned_whenCardinalAuthenticationJWTIsPresent() {
+        let configurationJSON = BTJSON(value: [
+            "threeDSecure": [ "cardinalAuthenticationJWT" : "123"]
+            ])
+        let configuration = BTConfiguration(json: configurationJSON)
+
+        XCTAssertEqual(configuration.cardinalAuthenticationJWT, "123")
     }
 
 }

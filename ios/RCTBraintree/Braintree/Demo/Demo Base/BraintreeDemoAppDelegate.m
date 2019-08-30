@@ -1,12 +1,7 @@
 #import "BraintreeDemoAppDelegate.h"
 #import "BraintreeDemoSettings.h"
-#import "BraintreeDemoSlideNavigationController.h"
 #import "BraintreeDemoDemoContainmentViewController.h"
 #import <BraintreeCore/BraintreeCore.h>
-
-#if DEBUG
-#import <FLEX/FLEXManager.h>
-#endif
 
 NSString *BraintreeDemoAppDelegatePaymentsURLScheme = @"com.braintreepayments.Demo.payments";
 
@@ -19,26 +14,20 @@ NSString *BraintreeDemoAppDelegatePaymentsURLScheme = @"com.braintreepayments.De
     [BTAppSwitch setReturnURLScheme:BraintreeDemoAppDelegatePaymentsURLScheme];
     
     BraintreeDemoDemoContainmentViewController *rootViewController = [[BraintreeDemoDemoContainmentViewController alloc] init];
-    BraintreeDemoSlideNavigationController *slideNav = [[BraintreeDemoSlideNavigationController alloc] initWithRootViewController:rootViewController];
+    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:rootViewController];
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    self.window.rootViewController = slideNav;
+    self.window.rootViewController = navigationController;
     [self.window makeKeyAndVisible];
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setBool:YES forKey:@"magnes.debug.mode"];
+
     return YES;
 }
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000
 - (BOOL)application:(__unused UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
     if ([[url.scheme lowercaseString] isEqualToString:[BraintreeDemoAppDelegatePaymentsURLScheme lowercaseString]]) {
         return [BTAppSwitch handleOpenURL:url options:options];
-    }
-    return YES;
-}
-#endif
-
-// Deprecated in iOS 9, but necessary to support < versions
-- (BOOL)application:(__unused UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(__unused id)annotation {
-    if ([[url.scheme lowercaseString] isEqualToString:[BraintreeDemoAppDelegatePaymentsURLScheme lowercaseString]]) {
-        return [BTAppSwitch handleOpenURL:url sourceApplication:sourceApplication];
     }
     return YES;
 }
@@ -104,16 +93,5 @@ NSString *BraintreeDemoAppDelegatePaymentsURLScheme = @"com.braintreepayments.De
     
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaultsToRegister];
 }
-
-
-#if DEBUG
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    [super touchesBegan:touches withEvent:event];
-    CGPoint location = [[[event allTouches] anyObject] locationInView:[self window]];
-    if(location.y > 0 && location.y < [[UIApplication sharedApplication] statusBarFrame].size.height) {
-        [[FLEXManager sharedManager] showExplorer];
-    }
-}
-#endif
 
 @end

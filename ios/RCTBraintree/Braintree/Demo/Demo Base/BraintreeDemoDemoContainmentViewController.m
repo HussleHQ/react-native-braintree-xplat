@@ -8,28 +8,25 @@
 #import "BraintreeDemoMerchantAPI.h"
 #import "BraintreeDemoBaseViewController.h"
 #import "BraintreeDemoIntegrationViewController.h"
-#import "BraintreeDemoSlideNavigationController.h"
 #import "BraintreeDemoSettings.h"
 
-@interface BraintreeDemoDemoContainmentViewController () <IASKSettingsDelegate, SlideNavigationControllerDelegate, IntegrationViewControllerDelegate>
+@interface BraintreeDemoDemoContainmentViewController () <IASKSettingsDelegate, IntegrationViewControllerDelegate>
 @property (nonatomic, strong) UIBarButtonItem *statusItem;
 @property (nonatomic, strong) BTPaymentMethodNonce *latestTokenizedPayment;
 @property (nonatomic, strong) BraintreeDemoBaseViewController *currentDemoViewController;
-@property (nonatomic, strong) UIViewController *rightMenu;
 @end
 
 @implementation BraintreeDemoDemoContainmentViewController
 
 - (void)viewDidLoad {
-    self.title = @"Braintree";
+    self.title = NSLocalizedString(@"Braintree", nil);
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action: @selector(tappedRefresh)];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Settings" style:UIBarButtonItemStylePlain target:self action: @selector(tappedSettings)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Settings", nil) style:UIBarButtonItemStylePlain target:self action: @selector(tappedSettings)];
     self.view.backgroundColor = [UIColor whiteColor];
     [self.navigationController setToolbarHidden:NO];
     [super viewDidLoad];
     [self setupToolbar];
     [self reloadIntegration];
-    [self setupRightMenu];
 }
 
 - (void)setupToolbar {
@@ -41,7 +38,7 @@
                                                                                     action:nil];
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.titleLabel.numberOfLines = 0;
-    [button setTitle:@"Ready" forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"Ready", nil) forState:UIControlStateNormal];
     [button.titleLabel setTextColor:[UIColor whiteColor]];
     [button addTarget:self action:@selector(tappedStatus) forControlEvents:UIControlEventTouchUpInside];
     button.titleLabel.textAlignment = NSTextAlignmentCenter;
@@ -53,19 +50,6 @@
     self.statusItem.enabled = NO;
     self.toolbarItems = @[flexSpaceLeft, self.statusItem, flexSpaceRight];
 }
-
-- (void)setupRightMenu {
-    BraintreeDemoIntegrationViewController *ivc = [[BraintreeDemoIntegrationViewController alloc] init];
-    ivc.delegate = self;
-    UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:ivc];
-    self.rightMenu = nc;
-    [BraintreeDemoSlideNavigationController sharedInstance].rightMenu = self.rightMenu;
-}
-
-- (BOOL)slideNavigationControllerShouldDisplayRightMenu {
-    return YES;
-}
-
 
 #pragma mark - UI Updates
 
@@ -141,7 +125,7 @@
         [self.currentDemoViewController.view removeFromSuperview];
     }
 
-    self.title = @"Braintree";
+    self.title = NSLocalizedString(@"Braintree", nil);
     
     if ([BraintreeDemoSettings authorizationOverride]) {
         self.currentDemoViewController = [self instantiateCurrentIntegrationViewControllerWithAuthorization:[BraintreeDemoSettings authorizationOverride]];

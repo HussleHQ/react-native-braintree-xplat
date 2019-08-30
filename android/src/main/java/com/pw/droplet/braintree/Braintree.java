@@ -271,7 +271,7 @@ public class Braintree extends ReactContextBaseJavaModule {
 
     if (!parameters.hasKey("nonce")) {
       this.errorCallback.invoke("Parameter `nonce` is required");
-    }  else if (!parameters.hasKey("amount")) {
+    } else if (!parameters.hasKey("amount")) {
       this.errorCallback.invoke("Parameter `amount` is required");
     } else {
       ThreeDSecureRequest threeDSecureRequest = new ThreeDSecureRequest()

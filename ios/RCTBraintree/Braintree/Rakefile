@@ -11,13 +11,10 @@ desc "Run default set of tasks"
 task :spec => %w[spec:all]
 
 desc "Run internal release process, pushing to internal GitHub Enterprise only"
-task :release => %w[release:assumptions sanity_checks release:check_working_directory release:test  release:bump_version release:lint_podspec release:tag release:push_private]
+task :release => %w[release:assumptions sanity_checks release:check_working_directory release:bump_version release:lint_podspec release:tag release:push_private]
 
 desc "Publish code and pod to public github.com"
-task :publish => %w[publish:push publish:push_pod publish:cocoadocs]
-
-desc "Distribute app, in its current state, to HockeyApp"
-task :distribute => %w[distribute:build distribute:hockeyapp]
+task :publish => %w[publish:push publish:push_pod docs_internal docs_external]
 
 SEMVER = /\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?/
 PODSPEC = "Braintree.podspec"
@@ -123,15 +120,13 @@ end
 desc 'Run Carthage update'
 namespace :carthage do
   def generate_cartfile
+    run! 'mv Cartfile Cartfile.backup'
     File.write("./Cartfile", "git \"file://#{Dir.pwd}\" \"#{current_branch}\"")
-  end
-
-  task :generate do
-    generate_cartfile
   end
 
   task :clean do
     run! 'rm -rf Carthage && rm Cartfile && rm Cartfile.resolved && rm -rf ~/Library/Developers/Xcode/DerivedData'
+    run! 'mv Cartfile.backup Cartfile'
   end
 
   task :test do
@@ -147,8 +142,17 @@ task :sanity_checks => %w[sanity_checks:pending_specs sanity_checks:build_demo s
 namespace :sanity_checks do
   desc 'Check for pending tests'
   task :pending_specs do
+    begin
+      run! "which -s ack"
+    rescue => e
+      puts
+      say(HighLine.color("Please install ack before running", :red, :bold))
+      puts
+      raise
+    end
+
     # ack returns 1 if no match is found, which is our success case
-    run! "which -s ack && ! ack 'fit\\(|fdescribe\\(' Specs" or fail "Please do not commit pending specs."
+    run! "! ack 'fit\\(|fdescribe\\(' Specs" or fail "Please do not commit pending specs."
   end
 
   desc 'Verify that all demo apps Build successfully'
@@ -158,84 +162,6 @@ namespace :sanity_checks do
   task :carthage_test => %w[carthage:test carthage:clean]
 end
 
-
-
-def apple_doc_command
-  %W[/usr/local/bin/appledoc
-      -o appledocs
-      --project-name Braintree
-      --project-version '#{current_version_with_sha}'
-      --project-company Braintree
-      --docset-bundle-id '%COMPANYID'
-      --docset-bundle-name Braintree
-      --docset-desc 'Braintree iOS SDK (%VERSION)'
-      --index-desc README.md
-      --include LICENSE
-      --include CHANGELOG.md
-      --print-information-block-titles
-      --company-id com.braintreepayments
-      --prefix-merged-sections
-      --no-merge-categories
-      --warn-missing-company-id
-      --warn-undocumented-object
-      --warn-undocumented-member
-      --warn-empty-description
-      --warn-unknown-directive
-      --warn-invalid-crossref
-      --warn-missing-arg
-      --no-repeat-first-par
-  ].join(' ')
-end
-
-def apple_doc_files
-  %x{find Braintree -name "*.h"}.split("\n").reject { |name| name =~ /mSDK/}.map { |name| name.gsub(' ', '\\ ')}.join(' ')
-end
-
-desc "Generate documentation via appledoc"
-task :docs => 'docs:generate'
-
-namespace :appledoc do
-  task :check do
-    unless File.exists?('/usr/local/bin/appledoc')
-      puts "appledoc not found at /usr/local/bin/appledoc: Install via homebrew and try again: `brew install --HEAD appledoc`"
-      exit 1
-    end
-  end
-end
-
-namespace :docs do
-  desc "Generate apple docs as html"
-  task :generate => 'appledoc:check' do
-    command = apple_doc_command << " --no-create-docset --keep-intermediate-files --create-html #{apple_doc_files}"
-    run(command)
-    puts "Generated HTML documentationa at appledocs/html"
-  end
-
-  desc "Check that documentation can be built from the source code via appledoc successfully."
-  task :check => 'appledoc:check' do
-    command = apple_doc_command << " --no-create-html --verbose 5 #{apple_doc_files}"
-    exitstatus = run(command)
-    if exitstatus == 0
-      puts "appledoc generation completed successfully!"
-    elsif exitstatus == 1
-      puts "appledoc generation produced warnings"
-    elsif exitstatus == 2
-      puts "! appledoc generation encountered an error"
-      exit(exitstatus)
-    else
-      puts "!! appledoc generation failed with a fatal error"
-    end
-    exit(exitstatus)
-  end
-
-  desc "Generate & install a docset into Xcode from the current sources"
-  task :install => 'appledoc:check' do
-    command = apple_doc_command << " --install-docset #{apple_doc_files}"
-    run(command)
-  end
-end
-
-
 namespace :release do
   desc "Print out pre-release checklist"
   task :assumptions do
@@ -244,8 +170,7 @@ namespace :release do
     say "* [ ] You are on the branch and commit you want to release."
     say "* [ ] You have already merged hotfixes and pulled changes."
     say "* [ ] You have already reviewed the diff between the current release and the last tag, noting breaking changes in the semver and CHANGELOG."
-    say "* [ ] Tests are passing, manual verifications complete."
-    say "* [ ] iOS Simulator has hardware keyboard disabled"
+    say "* [ ] Tests (rake spec) are passing, manual verifications complete."
     say "* [ ] Email is composed and ready to send to braintree-sdk-announce@googlegroups.com"
 
     abort(1) unless ask "Ready to release? "
@@ -315,31 +240,6 @@ namespace :publish do
     run! "pod trunk push --allow-warnings Braintree.podspec"
   end
 
-  desc "Force CocoaDocs reparse"
-  task :cocoadocs do
-    run! "curl --silent --show-error http://api.cocoadocs.org:4567/redeploy/Braintree/latest"
-  end
-
-end
-
-namespace :distribute do
-  task :build do
-    destination = File.expand_path("~/Desktop/Braintree-Demo-#{current_version_with_sha}")
-    run! "ipa build --scheme Demo --destination '#{destination}' --embed EverybodyVenmo.mobileprovision --identity 'iPhone Distribution: Venmo Inc.'"
-    say "Archived Demo (#{current_version}) to: #{destination}"
-  end
-
-  task :hockeyapp do
-    destination = File.expand_path("~/Desktop/Braintree-Demo-#{current_version_with_sha}")
-    changes = File.read("CHANGELOG.md")[/(## #{current_version}.*?)^## /m, 1].strip
-    run! "ipa distribute:hockeyapp --token '#{File.read(".hockeyapp").strip}' --identifier '7134982f3df6419a0eb52b16e7d6d175' --file '#{destination}/Braintree-Demo.ipa' --dsym '#{destination}/Braintree-Demo.app.dSYM.zip' --markdown --notes #{Shellwords.shellescape("#{changes}\n\n#{current_version_with_sha}")}"
-    say "Uploaded Demo (#{current_version_with_sha}) to HockeyApp!"
-  end
-end
-
-desc "Generate code for pinned certificates. (Copies *.crt -> BTAPIPinnedCertificates.{h,m})"
-task :generate_pinned_certificates_code do
-  run! "cd #{File.join(File.dirname(__FILE__), "Braintree/API/Networking/Certificates")} && ./codify_certificates.sh"
 end
 
 namespace :gen do
@@ -352,3 +252,59 @@ namespace :gen do
   end
 end
 
+def jazzy_command
+  %W[jazzy
+      --objc
+      --author Braintree
+      --author_url http://braintreepayments.com
+      --github_url https://github.com/braintree/braintree_ios
+      --github-file-prefix https://github.com/braintree/braintree_ios/tree/#{current_version}
+      --sdk iphonesimulator
+      --module-version #{current_version}
+      --output docs_output
+      --xcodebuild-arguments --objc,Docs/Braintree-Umbrella-Header.h,--,-x,objective-c,-isysroot,$(xcrun --show-sdk-path),-I,$(pwd)
+      --min-acl internal
+      --theme fullwidth
+      --module Braintree
+  ].join(' ')
+end
+
+desc "Generate documentation via jazzy and push to GHE"
+task :docs_internal => %w[docs:generate docs:publish docs:internal docs:clean]
+
+desc "Generate documentation via jazzy and push to GH"
+task :docs_external => %w[docs:generate docs:publish docs:external docs:clean]
+
+namespace :docs do
+
+  desc "Generate docs with jazzy"
+  task :generate do
+    run! 'rm -rf docs_output'
+    run(jazzy_command)
+    puts "Generated HTML documentation at docs_output"
+  end
+
+  task :publish do
+    run 'git branch -D gh-pages'
+    run! 'git add docs_output'
+    run! 'git commit -m "Publish docs to github pages"'
+    puts "Generating git subtree, this will take a moment..."
+    run! 'git subtree split --prefix docs_output -b gh-pages'
+  end
+
+  task:internal do
+    run! 'git push -f origin gh-pages:gh-pages'
+  end
+
+  task:external do
+    run! 'git push -f public gh-pages:gh-pages'
+  end
+
+  task :clean do
+    run! 'git reset HEAD~'
+    run! 'git branch -D gh-pages'
+    puts "Published docs to gh-pages branch"
+    run! 'rm -rf docs_output'
+  end
+
+end

@@ -1,15 +1,18 @@
 #import "BTConfiguration+Venmo.h"
-#if __has_include("BTLogger_Internal.h")
-#import "BTLogger_Internal.h"
-#else
-#import <BraintreeCore/BTLogger_Internal.h>
-#endif
 #import "BTVenmoDriver_Internal.h"
 #import "BTVenmoAccountNonce_Internal.h"
-#import "BTAPIClient_Internal.h"
 #import "BTVenmoAppSwitchRequestURL.h"
 #import "BTVenmoAppSwitchReturnURL.h"
+
+#if __has_include("BraintreeCore.h")
 #import "Braintree-Version.h"
+#import "BTAPIClient_Internal.h"
+#import "BTLogger_Internal.h"
+#else
+#import <BraintreeCore/Braintree-Version.h>
+#import <BraintreeCore/BTAPIClient_Internal.h>
+#import <BraintreeCore/BTLogger_Internal.h>
+#endif
 #import <UIKit/UIKit.h>
 
 @interface BTVenmoDriver ()
@@ -19,6 +22,7 @@
 @end
 
 NSString * const BTVenmoDriverErrorDomain = @"com.braintreepayments.BTVenmoDriverErrorDomain";
+NSString * const BTVenmoAppStoreUrl = @"https://itunes.apple.com/us/app/venmo-send-receive-money/id351727428";
 
 @implementation BTVenmoDriver
 
@@ -82,11 +86,18 @@ static BTVenmoDriver *appSwitchedDriver;
 
 #pragma mark - Tokenization
 
-- (void)authorizeAccountWithCompletion:(void (^)(BTVenmoAccountNonce *venmoAccount, NSError *configurationError))completionBlock {
+- (void)authorizeAccountWithCompletion:(void (^)(BTVenmoAccountNonce *venmoAccount, NSError *error))completionBlock {
     [self authorizeAccountAndVault:NO completion:completionBlock];
 }
 
-- (void)authorizeAccountAndVault:(BOOL)vault completion:(void (^)(BTVenmoAccountNonce *venmoAccount, NSError *configurationError))completionBlock {
+- (void)authorizeAccountAndVault:(BOOL)vault completion:(void (^)(BTVenmoAccountNonce *venmoAccount, NSError *error))completionBlock {
+    [self authorizeAccountWithProfileID:nil vault:vault completion:completionBlock];
+}
+
+- (void)authorizeAccountWithProfileID:(NSString *)profileId
+                                vault:(BOOL)vault
+                           completion:(void (^)(BTVenmoAccountNonce *venmoAccount, NSError *error))completionBlock
+{
     if (!self.apiClient) {
         NSError *error = [NSError errorWithDomain:BTVenmoDriverErrorDomain
                                              code:BTVenmoDriverErrorTypeIntegration
@@ -94,15 +105,15 @@ static BTVenmoDriver *appSwitchedDriver;
         completionBlock(nil, error);
         return;
     }
-    
+
     if (self.returnURLScheme == nil || [self.returnURLScheme isEqualToString:@""]) {
         [[BTLogger sharedLogger] critical:@"Venmo requires a return URL scheme to be configured via [BTAppSwitch setReturnURLScheme:]"];
         NSError *error = [NSError errorWithDomain:BTVenmoDriverErrorDomain
-                                    code:BTVenmoDriverErrorTypeAppNotAvailable
-                                userInfo:@{NSLocalizedDescriptionKey: @"UIApplication failed to perform app switch to Venmo."}];
+                                             code:BTVenmoDriverErrorTypeAppNotAvailable
+                                         userInfo:@{NSLocalizedDescriptionKey: @"UIApplication failed to perform app switch to Venmo."}];
         completionBlock(nil, error);
         return;
-    } else if (![NSBundle mainBundle].bundleIdentifier || ![self.returnURLScheme hasPrefix:[NSBundle mainBundle].bundleIdentifier]) {
+    } else if (!self.bundle.bundleIdentifier || ![self.returnURLScheme hasPrefix:self.bundle.bundleIdentifier]) {
         [[BTLogger sharedLogger] critical:@"Venmo requires [BTAppSwitch setReturnURLScheme:] to be configured to begin with your app's bundle ID (%@). Currently, it is set to (%@) ", [NSBundle mainBundle].bundleIdentifier, self.returnURLScheme];
     }
 
@@ -111,7 +122,7 @@ static BTVenmoDriver *appSwitchedDriver;
             completionBlock(nil, configurationError);
             return;
         }
-        
+
         NSError *error;
         if (![self verifyAppSwitchWithConfiguration:configuration error:&error]) {
             completionBlock(nil, error);
@@ -121,26 +132,15 @@ static BTVenmoDriver *appSwitchedDriver;
         BTMutableClientMetadata *metadata = [self.apiClient.metadata mutableCopy];
         metadata.source = BTClientMetadataSourceVenmoApp;
         NSString *bundleDisplayName = [self.bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
-        
-        BTJSON *venmoMerchantId = configuration.json[@"payWithVenmo"][@"merchantId"];
-        if ([venmoMerchantId isError]) {
-            completionBlock(nil, [venmoMerchantId asError]);
-            return;
-        }
-        
-        BTJSON *venmoMerchantEnvironment = configuration.json[@"payWithVenmo"][@"environment"];
-        if ([venmoMerchantEnvironment isError]) {
-            completionBlock(nil, [venmoMerchantEnvironment asError]);
-            return;
-        }
 
-        NSURL *appSwitchURL = [BTVenmoAppSwitchRequestURL appSwitchURLForMerchantID:[venmoMerchantId asString]
+        NSString *venmoProfileId = profileId ?: configuration.venmoMerchantID;
+        NSURL *appSwitchURL = [BTVenmoAppSwitchRequestURL appSwitchURLForMerchantID:venmoProfileId
                                                                         accessToken:configuration.venmoAccessToken
                                                                     returnURLScheme:self.returnURLScheme
                                                                   bundleDisplayName:bundleDisplayName
-                                                                        environment:[venmoMerchantEnvironment asString]
+                                                                        environment:configuration.venmoEnvironment
                                                                            metadata:[self.apiClient metadata]];
-        
+
         if (!appSwitchURL) {
             error = [NSError errorWithDomain:BTVenmoDriverErrorDomain
                                         code:BTVenmoDriverErrorTypeInvalidRequestURL
@@ -148,20 +148,14 @@ static BTVenmoDriver *appSwitchedDriver;
             completionBlock(nil, error);
             return;
         }
-        
+
         [self informDelegateWillPerformAppSwitch];
-        
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
-        if ([self.application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
-            if (@available(iOS 10.0, *)) {
-#endif
+        [self informDelegateAppContextWillSwitch];
+
+        if (@available(iOS 10.0, *)) {
             [self.application openURL:appSwitchURL options:[NSDictionary dictionary] completionHandler:^(BOOL success) {
                 [self invokedOpenURLSuccessfully:success shouldVault:vault completion:completionBlock];
             }];
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
-            }
-#endif
         } else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -169,13 +163,6 @@ static BTVenmoDriver *appSwitchedDriver;
             [self invokedOpenURLSuccessfully:success shouldVault:vault completion:completionBlock];
 #pragma clang diagnostic pop
         }
-#else
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        BOOL success = [self.application openURL:appSwitchURL];
-        [self invokedOpenURLSuccessfully:success shouldVault:vault completion:completionBlock];
-#pragma clang diagnostic pop
-#endif
     }];
 }
 
@@ -238,6 +225,7 @@ static BTVenmoDriver *appSwitchedDriver;
 }
 
 - (void)handleOpenURL:(NSURL *)url {
+    [self informDelegateAppContextDidReturn];
     BTVenmoAppSwitchReturnURL *returnURL = [[BTVenmoAppSwitchReturnURL alloc] initWithURL:url];
     
     switch (returnURL.state) {
@@ -259,7 +247,7 @@ static BTVenmoDriver *appSwitchedDriver;
             
             [self.apiClient sendAnalyticsEvent:@"ios.pay-with-venmo.appswitch.handle.success"];
             
-            if (self.shouldVault) {
+            if (self.shouldVault && self.apiClient.clientToken != nil) {
                 [self vaultVenmoAccountNonce:returnURL.nonce];
             } else {
                 [self informDelegateWillProcessAppSwitchReturn];
@@ -290,6 +278,21 @@ static BTVenmoDriver *appSwitchedDriver;
         default:
             // should not happen
             break;
+    }
+}
+
+#pragma mark - App Store switch
+
+- (void)openVenmoAppPageInAppStore {
+    NSURL *venmoAppStoreUrl = [NSURL URLWithString:BTVenmoAppStoreUrl];
+    [self.apiClient sendAnalyticsEvent:@"ios.pay-with-venmo.app-store.invoked"];
+    if (@available(iOS 10.0, *)) {
+        [self.application openURL:venmoAppStoreUrl options:[NSDictionary dictionary] completionHandler:nil];
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [self.application openURL:venmoAppStoreUrl];
+#pragma clang diagnostic pop
     }
 }
 
@@ -359,6 +362,23 @@ static BTVenmoDriver *appSwitchedDriver;
     }
 }
 
+- (void)informDelegateAppContextWillSwitch {
+    NSNotification *notification = [[NSNotification alloc] initWithName:BTAppContextWillSwitchNotification object:self userInfo:nil];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+
+    if ([self.appSwitchDelegate respondsToSelector:@selector(appContextWillSwitch:)]) {
+        [self.appSwitchDelegate appContextWillSwitch:self];
+    }
+}
+
+- (void)informDelegateAppContextDidReturn {
+    NSNotification *notification = [[NSNotification alloc] initWithName:BTAppContextDidReturnNotification object:self userInfo:nil];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+
+    if ([self.appSwitchDelegate respondsToSelector:@selector(appContextDidReturn:)]) {
+        [self.appSwitchDelegate appContextDidReturn:self];
+    }
+}
 
 @end
 
