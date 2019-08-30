@@ -276,7 +276,8 @@ public class Braintree extends ReactContextBaseJavaModule {
     } else {
       ThreeDSecureRequest threeDSecureRequest = new ThreeDSecureRequest()
               .nonce(parameters.getString("nonce"))
-              .amount(parameters.getString("amount"));
+              .amount(parameters.getString("amount"))
+              .versionRequested(ThreeDSecureRequest.VERSION_2);
       ThreeDSecure.performVerification(mBraintreeFragment, threeDSecureRequest);
     }
   }
