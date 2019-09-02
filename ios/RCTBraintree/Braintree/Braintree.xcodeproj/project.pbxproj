@@ -4415,37 +4415,53 @@
 					03F8B2651C23976000FD184B = {
 						CreatedOnToolsVersion = 7.2;
 						LastSwiftMigration = 1010;
+						ProvisioningStyle = Automatic;
 						TestTargetID = A76B198A1B79707700452CFA;
 					};
 					16CD2E9B1B4077FB00E68495 = {
 						CreatedOnToolsVersion = 7.0;
 						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
 						TestTargetID = A76B198A1B79707700452CFA;
 					};
 					2D941D371B59C76A0016EFB4 = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					2D941D871B5D9E8C0016EFB4 = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					2DE12F081B59BE0100EA1BCF = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
+					};
+					4164B9951C9B658E006AE861 = {
+						ProvisioningStyle = Automatic;
 					};
 					417404481BB084D3008A5DEA = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
+					};
+					7EDE474C1CD2C3D00005E22B = {
+						ProvisioningStyle = Automatic;
 					};
 					A50C3AD41C19F00600612D90 = {
 						CreatedOnToolsVersion = 7.2;
+						ProvisioningStyle = Automatic;
 					};
 					A50C3B041C19F55C00612D90 = {
 						CreatedOnToolsVersion = 7.2;
+						ProvisioningStyle = Automatic;
 					};
 					A50C3B6E1C1A29C500612D90 = {
 						CreatedOnToolsVersion = 7.2;
+						ProvisioningStyle = Automatic;
 					};
 					A76B198A1B79707700452CFA = {
 						CreatedOnToolsVersion = 7.0;
 						DevelopmentTeam = 43253H4X22;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.OMC = {
 								enabled = 1;
@@ -4454,22 +4470,31 @@
 					};
 					A76D7BFF1BB1CAB00000FA6A = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					A77344F61B7A93A10083EC8D = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					A77AA29B1B618C7700217B73 = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					A7ABD6521B702FD800A1223C = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 						TestTargetID = A76B198A1B79707700452CFA;
+					};
+					A7B462E01C3D9C2200048423 = {
+						ProvisioningStyle = Automatic;
 					};
 					A7C889731B5EF5DE007A0E9C = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 					A7C8898F1B5F043B007A0E9C = {
 						CreatedOnToolsVersion = 7.0;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -7184,6 +7209,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -7238,6 +7264,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
