@@ -4,26 +4,26 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.braintreepayments.api.interfaces.BraintreeCancelListener;
+import com.braintreepayments.api.interfaces.ThreeDSecureLookupListener;
+import com.braintreepayments.api.models.ThreeDSecureLookup;
 import com.braintreepayments.api.models.ThreeDSecureRequest;
 import com.google.gson.Gson;
 
 import android.content.Intent;
 import android.content.Context;
 import android.app.Activity;
+import android.os.Parcelable;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.braintreepayments.api.ThreeDSecure;
-//import com.braintreepayments.api.PaymentRequest;
 import com.braintreepayments.api.models.PaymentMethodNonce;
-//import com.braintreepayments.api.BraintreePaymentActivity;
 import com.braintreepayments.api.BraintreeFragment;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.BraintreeError;
 import com.braintreepayments.api.exceptions.ErrorWithResponse;
 import com.braintreepayments.api.models.CardBuilder;
 import com.braintreepayments.api.Card;
-import com.braintreepayments.api.PayPal;
 import com.braintreepayments.api.interfaces.PaymentMethodNonceCreatedListener;
 import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.models.CardNonce;
@@ -35,8 +35,11 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReadableMap;
 
-public class Braintree extends ReactContextBaseJavaModule {
-  private static final int PAYMENT_REQUEST = 1706816330;
+public class Braintree extends ReactContextBaseJavaModule implements ActivityEventListener {
+  private static final String USER_CANCELLATION = "USER_CANCELLATION";
+  private static final String AUTHENTICATION_UNSUCCESSFUL = "AUTHENTICATION_UNSUCCESSFUL";
+  private static final String THREE_D_SECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED = "3DSECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED";
+  private static final String EXTRA_THREE_D_SECURE_LOOKUP = "com.braintreepayments.api.ThreeDSecureActivity.EXTRA_THREE_D_SECURE_LOOKUP";
   private String token;
 
   private Callback successCallback;
@@ -50,7 +53,7 @@ public class Braintree extends ReactContextBaseJavaModule {
 
   public Braintree(ReactApplicationContext reactContext) {
     super(reactContext);
-//    reactContext.addActivityEventListener(this);
+    reactContext.addActivityEventListener(this);
   }
 
   @Override
@@ -69,31 +72,36 @@ public class Braintree extends ReactContextBaseJavaModule {
   @ReactMethod
   public void setup(final String token, final Callback successCallback, final Callback errorCallback) {
     try {
-      this.mBraintreeFragment = BraintreeFragment.newInstance((AppCompatActivity)getCurrentActivity(), token);
-      this.mBraintreeFragment.addListener(new BraintreeCancelListener() {
+      this.successCallback = successCallback;
+      this.errorCallback = errorCallback;
+
+      mBraintreeFragment = BraintreeFragment.newInstance((AppCompatActivity)getCurrentActivity(), token);
+      mBraintreeFragment.addListener(new BraintreeCancelListener() {
         @Override
         public void onCancel(int requestCode) {
-          nonceErrorCallback("USER_CANCELLATION");
+          nonceErrorCallback(USER_CANCELLATION);
         }
       });
-      this.mBraintreeFragment.addListener(new PaymentMethodNonceCreatedListener() {
+
+      mBraintreeFragment.addListener(new PaymentMethodNonceCreatedListener() {
         @Override
         public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
-          if (threeDSecureOptions != null && paymentMethodNonce instanceof CardNonce) {
+          if (paymentMethodNonce instanceof CardNonce) {
             CardNonce cardNonce = (CardNonce) paymentMethodNonce;
             if(!cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()
-            || cardNonce.getThreeDSecureInfo().isLiabilityShifted()) {
+              || cardNonce.getThreeDSecureInfo().isLiabilityShifted()) {
               nonceCallback(paymentMethodNonce.getNonce());
             }
             else {
-              nonceErrorCallback("3DSECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED");
+              nonceErrorCallback(THREE_D_SECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED);
             }
           }
           else {
-            nonceCallback(paymentMethodNonce.getNonce());
+            nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
           }
         }
       });
+
       this.mBraintreeFragment.addListener(new BraintreeErrorListener() {
         @Override
         public void onError(Exception error) {
@@ -278,7 +286,13 @@ public class Braintree extends ReactContextBaseJavaModule {
               .nonce(parameters.getString("nonce"))
               .amount(parameters.getString("amount"))
               .versionRequested(ThreeDSecureRequest.VERSION_2);
-      ThreeDSecure.performVerification(mBraintreeFragment, threeDSecureRequest);
+
+      ThreeDSecure.performVerification(mBraintreeFragment, threeDSecureRequest, new ThreeDSecureLookupListener() {
+        @Override
+        public void onLookupComplete(ThreeDSecureRequest request, ThreeDSecureLookup lookup) {
+          ThreeDSecure.continuePerformVerification(mBraintreeFragment, request, lookup);
+        }
+      });
     }
   }
 
@@ -341,20 +355,35 @@ public class Braintree extends ReactContextBaseJavaModule {
 //    PayPal.authorizeAccount(this.mBraintreeFragment);
 //  }
 
-//  @Override
-//  public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
-//    String paymentMethodNonce = paymentMethodNonce.getNonce();
-//    // Upload paymentMethodNonce to your server.
-//  }
 
-//  @Override
-//  public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
-//    if (requestCode == PAYMENT_REQUEST) {
-//        if(resultCode == Activity.RESULT_CANCELED) {
-//          this.errorCallback.invoke({ message: "USER_CANCELLATION" });
-//        }
-//    }
-//  }
+  @Override
+  public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
+      switch (resultCode) {
+        case Activity.RESULT_OK:
+          try {
+            Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
 
-//  public void onNewIntent(Intent intent){}
+            if (returnedData instanceof ThreeDSecureLookup) {
+              ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
+              CardNonce cardNonce = lookup.getCardNonce();
+              String nonce = cardNonce.getNonce();
+
+              this.nonceCallback(nonce);
+            } else {
+              this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
+            }
+          } catch (Exception e) {
+            this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
+          }
+          break;
+        case Activity.RESULT_CANCELED:
+          this.nonceErrorCallback(USER_CANCELLATION);
+          break;
+        default:
+          this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
+          break;
+      }
+  }
+
+  public void onNewIntent(Intent intent){}
 }
