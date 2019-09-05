@@ -24,11 +24,10 @@ Pod::Spec.new do |s|
 
   s.module_name = 'RCTBraintree'
   s.requires_arc   = true
-  s.static_framework = true
+  # s.static_framework = true
   s.platform       = :ios, '9.0'
 
-  s.preserve_paths = '*.js'
-  s.public_header_files = ['ios/RCTBraintree/Braintree/Braintree3DSecure/Public/Braintree3DSecureCodePush.h']
+  # s.preserve_paths = '*.js'
 
   s.dependency "React"
   s.dependency "Braintree"
