@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
   # s.preserve_paths = '*.js'
 
   s.dependency "React"
-  s.dependency "Braintree" "~> 4.26.1"
+  s.dependency "Braintree" "4.26.1"
   s.dependency "Braintree/Core"
   s.dependency "Braintree/3D-Secure"
   s.dependency "Braintree/Card"
