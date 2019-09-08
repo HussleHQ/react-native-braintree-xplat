@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
   s.vendored_frameworks = "CardinalMobile.framework"
 
   s.dependency "React"
-  s.dependency "Braintree", "4.26.1"
+  s.dependency "Braintree"
   s.dependency "Braintree/Core"
   s.dependency "Braintree/3D-Secure"
   s.dependency "Braintree/Card"
