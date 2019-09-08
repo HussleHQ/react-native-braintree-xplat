@@ -19,15 +19,14 @@ Pod::Spec.new do |s|
 
   s.source_files = 'ios/RCTBraintree/*.{h,m}'
 
-  s.frameworks = 'CardinalMobile'
-  s.xcconfig = { 'FRAMEWORK_SEARCH_PATHS' => '$(SRCROOT)/../node_modules/react-native-braintree-xplat/ios/RCTBraintree/Braintree/Frameworks', 'HEADER_SEARCH_PATHS' => '"$(SRCROOT)/../node_modules/react-native-braintree-xplat/ios/RCTBraintree/Braintree"/**' }
+  # s.frameworks = 'CardinalMobile'
+  # s.xcconfig = { 'FRAMEWORK_SEARCH_PATHS' => '$(SRCROOT)/../node_modules/react-native-braintree-xplat/ios/RCTBraintree/Braintree/Frameworks', 'HEADER_SEARCH_PATHS' => '"$(SRCROOT)/../node_modules/react-native-braintree-xplat/ios/RCTBraintree/Braintree"/**' }
 
   s.module_name = 'RCTBraintree'
   s.requires_arc   = true
-  # s.static_framework = true
   s.platform       = :ios, '9.0'
 
-  # s.preserve_paths = '*.js'
+  s.vendored_frameworks = "CardinalMobile.framework"
 
   s.dependency "React"
   s.dependency "Braintree", "4.26.1"
