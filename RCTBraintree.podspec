@@ -21,9 +21,7 @@ Pod::Spec.new do |s|
 
   s.module_name = 'RCTBraintree'
   s.requires_arc   = true
-  s.platform       = :ios, '9.0'
-
-  # s.vendored_frameworks = "CardinalMobile.framework"
+  s.platform       = :ios, "8.0"
 
   s.dependency "React"
   s.dependency "Braintree"
