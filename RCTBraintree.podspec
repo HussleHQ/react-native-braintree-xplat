@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'RCTBraintree'
-  s.version          = '2.0.0'
+  s.version          = '2.1.0'
   s.summary          = 'Braintree SDK'
 
   s.homepage         = 'https://github.com/vtolochk/react-native-braintree-xplat'
@@ -25,6 +25,7 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "Braintree"
+  s.dependency "Braintree/UI"
   s.dependency "Braintree/Core"
   s.dependency "Braintree/3D-Secure"
   s.dependency "Braintree/Card"
