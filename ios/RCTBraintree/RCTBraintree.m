@@ -254,16 +254,11 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
                 BTThreeDSecureResult *threeDSecureResult = (BTThreeDSecureResult *)result;
 
                 if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShiftPossible) {
-                    if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShifted) {
                         // 3D Secure authentication success
-                        return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
-                    } else {
-                        // 3D Secure authentication failed
-                        return callback(@[@"AUTHENTICATION_UNSUCCESSFUL", [NSNull null]]);
-                    }
+                    return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
                 } else {
                     // 3D Secure authentication was not possible
-                     return callback(@[@"AUTHENTICATION_NOT_POSSIBLE", [NSNull null]]);
+                    return callback(@[@"AUTHENTICATION_NOT_POSSIBLE", [NSNull null]]);
                 }
             }
         }];
