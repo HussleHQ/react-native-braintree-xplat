@@ -38,7 +38,6 @@ import com.facebook.react.bridge.ReadableMap;
 public class Braintree extends ReactContextBaseJavaModule implements ActivityEventListener {
   private static final String USER_CANCELLATION = "USER_CANCELLATION";
   private static final String AUTHENTICATION_UNSUCCESSFUL = "AUTHENTICATION_UNSUCCESSFUL";
-  private static final String THREE_D_SECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED = "3DSECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED";
   private static final String EXTRA_THREE_D_SECURE_LOOKUP = "com.braintreepayments.api.ThreeDSecureActivity.EXTRA_THREE_D_SECURE_LOOKUP";
   private String token;
 
@@ -93,7 +92,7 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
               nonceCallback(paymentMethodNonce.getNonce());
             }
             else {
-              nonceErrorCallback(THREE_D_SECURE_LIABILITY_WAS_POSSIBLE_BUT_NOT_SHIFTED);
+              nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
             }
           }
           else {

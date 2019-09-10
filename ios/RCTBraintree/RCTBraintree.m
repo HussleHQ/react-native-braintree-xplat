@@ -249,20 +249,7 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
     dispatch_async(dispatch_get_main_queue(), ^{
         [paymentFlowDriver startPaymentFlow:request completion:^(BTPaymentFlowResult * _Nonnull result, NSError * _Nonnull error) {
             if (error) {
-                NSMutableDictionary *userInfo = [error.userInfo mutableCopy];
-                
-                [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPJSONResponseBodyKey"];
-                [userInfo removeObjectForKey:@"com.braintreepayments.BTHTTPURLResponseKey"];
-                
-                NSError *serialisationErr;
-                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:&serialisationErr];
-                
-                if (!jsonData) {
-                    return callback(@[serialisationErr.description, [NSNull null]]);
-                } else {
-                    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                    return callback(@[jsonString, [NSNull null]]);
-                }
+                return callback(@[@"AUTHENTICATION_UNSUCCESSFUL", [NSNull null]]);
             } else if (result) {
                 BTThreeDSecureResult *threeDSecureResult = (BTThreeDSecureResult *)result;
 
