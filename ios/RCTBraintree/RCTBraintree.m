@@ -276,7 +276,7 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
                     }
                 } else {
                     // 3D Secure authentication was not possible
-                     return callback(@[@"NOT_POSSIBLE", [NSNull null]]);
+                     return callback(@[@"AUTHENTICATION_NOT_POSSIBLE", [NSNull null]]);
                 }
             }
         }];
