@@ -371,8 +371,6 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
               String nonce = cardNonce.getNonce();
 
               this.nonceCallback(nonce);
-            } else {
-              this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
             }
           } catch (Exception e) {
             this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
