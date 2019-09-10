@@ -87,8 +87,11 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
         public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
           if (paymentMethodNonce instanceof CardNonce) {
             CardNonce cardNonce = (CardNonce) paymentMethodNonce;
-            if(!cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()
-              || cardNonce.getThreeDSecureInfo().isLiabilityShifted()) {
+
+            if(!cardNonce.getThreeDSecureInfo().getStatus().equals("lookup_error") &&
+                    !cardNonce.getThreeDSecureInfo().getStatus().equals("authentication_unavailable") &&
+                    (!cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()
+              || cardNonce.getThreeDSecureInfo().isLiabilityShifted())) {
               nonceCallback(paymentMethodNonce.getNonce());
             }
             else {
