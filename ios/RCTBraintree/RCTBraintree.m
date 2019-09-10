@@ -234,8 +234,6 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
     
     NSDecimalNumber *amount = parameters[@"amount"];
     NSString *nonce = parameters[@"nonce"];
-//    NSString *givenName = parameters[@"givenName"];
-//    NSString *surname = parameters[@"surname"];
     
     BTThreeDSecureRequest *request = [[BTThreeDSecureRequest alloc] init];
     BTThreeDSecurePostalAddress *billingAddress = [BTThreeDSecurePostalAddress new];
@@ -244,10 +242,6 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
     request.amount = amount;
     request.nonce = nonce;
     request.versionRequested = BTThreeDSecureVersion2;
-//    billingAddress.givenName = givenName;
-//    billingAddress.surname = surname;
-//    additionalInformation.shippingAddress = billingAddress;
-//    request.additionalInformation = additionalInformation;
 
     // Make sure that self conforms to the BTThreeDSecureRequestDelegate protocol
     request.threeDSecureRequestDelegate = self;
@@ -278,7 +272,7 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
                         return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
                     } else {
                         // 3D Secure authentication failed
-                        return callback(@[@"3DS_AUTH_FAILED", [NSNull null]]);
+                        return callback(@[@"AUTHENTICATION_UNSUCCESSFUL", [NSNull null]]);
                     }
                 } else {
                     // 3D Secure authentication was not possible
