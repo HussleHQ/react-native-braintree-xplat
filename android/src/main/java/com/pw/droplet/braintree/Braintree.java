@@ -90,7 +90,7 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
             if(!cardNonce.getThreeDSecureInfo().getStatus().equals("lookup_error") &&
                     !cardNonce.getThreeDSecureInfo().getStatus().equals("authentication_unavailable") &&
-                    !cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()) {
+                    cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()) {
               nonceCallback(paymentMethodNonce.getNonce());
             }
             else {
