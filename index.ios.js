@@ -79,11 +79,11 @@ var Braintree = {
     });
   },
 
-  getCardNonceWithThreeDSecure(rawCardDetails: CardParameters = {}, amount = 0) {
-    const cardDetails = mapParameters(rawCardDetails);
+  getCardNonceWithThreeDSecure(params) {
+    const cardDetails = mapParameters(params);
     const parameters = {
       cardDetails,
-      amount
+      amount: params.amount
     }
 
     return new Promise(function(resolve, reject) {

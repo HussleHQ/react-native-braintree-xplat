@@ -31,16 +31,16 @@ module.exports = {
       );
     });
   },
-  getCardNonceWithThreeDSecure(parameters = {}, orderTotal) {
+  getCardNonceWithThreeDSecure(parameters = {}) {
     var options = {
       threeDSecure: {
-        amount: orderTotal
+        amount: parameters.amount
       }
     };
     return new Promise(function(resolve, reject) {
       Braintree.getCardNonceWithThreeDSecure(
         mapParameters(parameters),
-        orderTotal,
+        Number(parameters.amount),
         options,
         nonce => resolve(nonce),
         err => reject(err)
