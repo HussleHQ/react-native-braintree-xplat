@@ -359,29 +359,21 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
   @Override
   public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
-      switch (resultCode) {
-        case Activity.RESULT_OK:
-          try {
-            Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
+    if (requestCode == Activity.RESULT_OK) {
+      try {
+        Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
 
-            if (returnedData instanceof ThreeDSecureLookup) {
-              ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
-              CardNonce cardNonce = lookup.getCardNonce();
-              String nonce = cardNonce.getNonce();
+        if (returnedData instanceof ThreeDSecureLookup) {
+          ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
+          CardNonce cardNonce = lookup.getCardNonce();
+          String nonce = cardNonce.getNonce();
 
-              this.nonceCallback(nonce);
-            }
-          } catch (Exception e) {
-            this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
-          }
-          break;
-        case Activity.RESULT_CANCELED:
-          this.nonceErrorCallback(USER_CANCELLATION);
-          break;
-        default:
-          this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
-          break;
+          this.nonceCallback(nonce);
+        }
+      } catch (Exception e) {
+        this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
       }
+    }
   }
 
   public void onNewIntent(Intent intent){}
