@@ -86,18 +86,8 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
         @Override
         public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
           if (paymentMethodNonce instanceof CardNonce) {
-            CardNonce cardNonce = (CardNonce) paymentMethodNonce;
-
-            if(!cardNonce.getThreeDSecureInfo().getStatus().equals("lookup_error") &&
-                    !cardNonce.getThreeDSecureInfo().getStatus().equals("authentication_unavailable") &&
-                    cardNonce.getThreeDSecureInfo().isLiabilityShiftPossible()) {
-              nonceCallback(paymentMethodNonce.getNonce());
-            }
-            else {
-              nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
-            }
-          }
-          else {
+            nonceCallback(paymentMethodNonce.getNonce());
+          } else {
             nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
           }
         }
@@ -305,74 +295,17 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
     this.errorCallback.invoke(error);
   }
 
-//  @ReactMethod
-//  public void paymentRequest(final ReadableMap options, final Callback successCallback, final Callback errorCallback) {
-//    this.successCallback = successCallback;
-//    this.errorCallback = errorCallback;
-//    PaymentRequest paymentRequest = null;
-//
-//    String callToActionText = null;
-//    String title = null;
-//    String description = null;
-//    String amount = null;
-//
-//    if (options.hasKey("callToActionText")) {
-//      callToActionText = options.getString("callToActionText");
-//    }
-//
-//    if (options.hasKey("title")) {
-//      title = options.getString("title");
-//    }
-//
-//    if (options.hasKey("description")) {
-//      description = options.getString("description");
-//    }
-//
-//    if (options.hasKey("amount")) {
-//      amount = options.getString("amount");
-//    }
-//
-//    if (options.hasKey("threeDSecure")) {
-//      this.threeDSecureOptions = options.getMap("threeDSecure");
-//    }
-//
-//    paymentRequest = new PaymentRequest()
-//      .submitButtonText(callToActionText)
-//      .primaryDescription(title)
-//      .secondaryDescription(description)
-//      .amount(amount)
-//      .clientToken(this.getToken());
-//
-//    (getCurrentActivity()).startActivityForResult(
-//      paymentRequest.getIntent(getCurrentActivity()),
-//      PAYMENT_REQUEST
-//    );
-//  }
-
-//  @ReactMethod
-//  public void paypalRequest(final Callback successCallback, final Callback errorCallback) {
-//    this.successCallback = successCallback;
-//    this.errorCallback = errorCallback;
-//    PayPal.authorizeAccount(this.mBraintreeFragment);
-//  }
-
-
   @Override
   public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
     if (requestCode == Activity.RESULT_OK) {
-      try {
         Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
 
         if (returnedData instanceof ThreeDSecureLookup) {
           ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
           CardNonce cardNonce = lookup.getCardNonce();
-          String nonce = cardNonce.getNonce();
-
-          this.nonceCallback(nonce);
+          
+          this.nonceCallback(cardNonce.getNonce());
         }
-      } catch (Exception e) {
-        this.nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
-      }
     }
   }
 
