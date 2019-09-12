@@ -194,11 +194,7 @@ RCT_EXPORT_METHOD(getCardNonceWithThreeDSecure: (NSDictionary *)parameters callb
                 if (error) {
                     return callback(@[error.localizedDescription, [NSNull null]]);
                 } else if (threeDSecureCard) {
-                    if (threeDSecureCard.liabilityShifted)
-                        return callback(@[[NSNull null], threeDSecureCard.nonce]);
-                    else {
-                        return callback(@[[NSNull null], tokenizedCard.nonce]);
-                    }
+                    return callback(@[[NSNull null], threeDSecureCard.nonce]);
                 } else {
                     // User Cancelled
                     return callback(@[[NSNull null], [NSNull null]]);
