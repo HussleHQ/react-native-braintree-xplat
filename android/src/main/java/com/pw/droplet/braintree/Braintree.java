@@ -297,13 +297,13 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
   @Override
   public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
-    if (requestCode == Activity.RESULT_OK) {
+    if (resultCode == Activity.RESULT_OK) {
         Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
 
         if (returnedData instanceof ThreeDSecureLookup) {
           ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
           CardNonce cardNonce = lookup.getCardNonce();
-          
+
           this.nonceCallback(cardNonce.getNonce());
         }
     }
