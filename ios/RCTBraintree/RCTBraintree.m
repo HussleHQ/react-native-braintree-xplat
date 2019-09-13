@@ -243,17 +243,17 @@ RCT_EXPORT_METHOD(getNonceWithThreeDSecure: (NSDictionary *)parameters callback:
     dispatch_async(dispatch_get_main_queue(), ^{
         [paymentFlowDriver startPaymentFlow:request completion:^(BTPaymentFlowResult * _Nonnull result, NSError * _Nonnull error) {
             if (error) {
-                return callback(@[@"AUTHENTICATION_UNSUCCESSFUL", [NSNull null]]);
+                NSInteger errorCode = [error code];
+                
+                if (errorCode == 6) { // user cancelled
+                    return callback(@[[NSNull null], [NSNull null]]);
+                } else {
+                    return callback(@[@"AUTHENTICATION_UNSUCCESSFUL", [NSNull null]]);
+                }
             } else if (result) {
                 BTThreeDSecureResult *threeDSecureResult = (BTThreeDSecureResult *)result;
-
-                if (threeDSecureResult.tokenizedCard.threeDSecureInfo.liabilityShiftPossible) {
-                        // 3D Secure authentication success
-                    return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
-                } else {
-                    // 3D Secure authentication was not possible
-                    return callback(@[@"AUTHENTICATION_NOT_POSSIBLE", [NSNull null]]);
-                }
+                
+                return callback(@[[NSNull null], threeDSecureResult.tokenizedCard.nonce]);
             }
         }];
     });
