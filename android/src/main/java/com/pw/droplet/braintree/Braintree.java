@@ -9,10 +9,7 @@ import com.braintreepayments.api.models.ThreeDSecureLookup;
 import com.braintreepayments.api.models.ThreeDSecureRequest;
 import com.google.gson.Gson;
 
-import android.content.Intent;
 import android.content.Context;
-import android.app.Activity;
-import android.os.Parcelable;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -35,7 +32,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReadableMap;
 
-public class Braintree extends ReactContextBaseJavaModule implements ActivityEventListener {
+public class Braintree extends ReactContextBaseJavaModule {
   private static final String USER_CANCELLATION = "USER_CANCELLATION";
   private static final String AUTHENTICATION_UNSUCCESSFUL = "AUTHENTICATION_UNSUCCESSFUL";
   private static final String EXTRA_THREE_D_SECURE_LOOKUP = "com.braintreepayments.api.ThreeDSecureActivity.EXTRA_THREE_D_SECURE_LOOKUP";
@@ -52,7 +49,6 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
   public Braintree(ReactApplicationContext reactContext) {
     super(reactContext);
-    reactContext.addActivityEventListener(this);
   }
 
   @Override
@@ -128,6 +124,8 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
             } else {
               nonceErrorCallback(errorWithResponse.getErrorResponse());
             }
+          } else {
+            nonceErrorCallback(AUTHENTICATION_UNSUCCESSFUL);
           }
         }
       });
@@ -168,18 +166,6 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
     if (parameters.hasKey("company"))
       cardBuilder.company(parameters.getString("company"));
-
-//    if (parameters.hasKey("countryName"))
-//      cardBuilder.countryName(parameters.getString("countryName"));
-//
-//    if (parameters.hasKey("countryCodeAlpha2"))
-//      cardBuilder.countryCodeAlpha2(parameters.getString("countryCodeAlpha2"));
-//
-//    if (parameters.hasKey("countryCodeAlpha3"))
-//      cardBuilder.countryCodeAlpha3(parameters.getString("countryCodeAlpha3"));
-//
-//    if (parameters.hasKey("countryCodeNumeric"))
-//      cardBuilder.countryCodeNumeric(parameters.getString("countryCodeNumeric"));
 
     if (parameters.hasKey("locality"))
       cardBuilder.locality(parameters.getString("locality"));
@@ -230,18 +216,6 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
 
     if (parameters.hasKey("company"))
       cardBuilder.company(parameters.getString("company"));
-
-//    if (parameters.hasKey("countryName"))
-//      cardBuilder.countryName(parameters.getString("countryName"));
-//
-//    if (parameters.hasKey("countryCodeAlpha2"))
-//      cardBuilder.countryCodeAlpha2(parameters.getString("countryCodeAlpha2"));
-//
-//    if (parameters.hasKey("countryCodeAlpha3"))
-//      cardBuilder.countryCodeAlpha3(parameters.getString("countryCodeAlpha3"));
-//
-//    if (parameters.hasKey("countryCodeNumeric"))
-//      cardBuilder.countryCodeNumeric(parameters.getString("countryCodeNumeric"));
 
     if (parameters.hasKey("locality"))
       cardBuilder.locality(parameters.getString("locality"));
@@ -295,19 +269,4 @@ public class Braintree extends ReactContextBaseJavaModule implements ActivityEve
     this.errorCallback.invoke(error);
   }
 
-  @Override
-  public void onActivityResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
-    if (resultCode == Activity.RESULT_OK) {
-        Parcelable returnedData = data.getParcelableExtra(EXTRA_THREE_D_SECURE_LOOKUP);
-
-        if (returnedData instanceof ThreeDSecureLookup) {
-          ThreeDSecureLookup lookup = (ThreeDSecureLookup)returnedData;
-          CardNonce cardNonce = lookup.getCardNonce();
-
-          this.nonceCallback(cardNonce.getNonce());
-        }
-    }
-  }
-
-  public void onNewIntent(Intent intent){}
 }
