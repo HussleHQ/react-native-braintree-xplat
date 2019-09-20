@@ -232,9 +232,13 @@ public class Braintree extends ReactContextBaseJavaModule {
     if (parameters.hasKey("extendedAddress"))
       cardBuilder.extendedAddress(parameters.getString("extendedAddress"));
 
+    ThreeDSecureRequest threeDSecureRequest = new ThreeDSecureRequest();
 
-    ThreeDSecure.performVerification(this.mBraintreeFragment, cardBuilder, String.valueOf(orderTotal));
+    threeDSecureRequest.challengeRequested(true);
+    threeDSecureRequest.amount(String.valueOf(orderTotal));
+    threeDSecureRequest.versionRequested(ThreeDSecureRequest.VERSION_2);
 
+    ThreeDSecure.performVerification(mBraintreeFragment, cardBuilder, threeDSecureRequest);
   }
 
   @ReactMethod
