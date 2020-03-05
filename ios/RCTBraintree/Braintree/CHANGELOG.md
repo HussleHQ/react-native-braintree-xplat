@@ -1,6 +1,39 @@
 # Braintree iOS SDK Release Notes
 
-## 4.28.0 (2019-09-05) 
+## 4.32.1 (2020-02-21) 
+
+* Fix crash when `ThreeDSecureRequest` `amount` field is set to NaN (resolves #507)
+* Update CardinalMobile.framework to v2.2.2-1 for Carthage users
+
+## 4.32.0 (2020-02-18)
+
+* Update CardinalMobile.framework to v2.2.2-1
+* Update PPDataCollector
+
+## 4.31.0 (2020-01-15)
+
+* Add support for basic UI customization of 3DS1 flows. See `BTThreeDSecureV1UICustomization`.
+
+## 4.30.2 (2019-11-15)
+
+* Updated CardinalMobile.framework to v2.2.1-2
+
+## 4.30.1 (2019-11-04)
+
+* Updated CardinalMobile.framework to v2.2.1
+
+## 4.30.0 (2019-10-01)
+
+* Fix nullability annotations on `BTPostalAddress` fields (resolves #472)
+* Add ability to request `AuthenticationInsight` when tokenizing a credit card, which can be used to make a decision about whether to perform 3D Secure verification
+* Set error message on `BTThreeDSecureInfo` when 3D Secure 2.0 challenge fails
+
+## 4.29.0 (2019-09-19)
+
+* Fix issue when returning from the Venmo app on iOS13
+* Fix crash and return error when `threeDSecureRequest.amount` is `nil` and 3DS v1 is requested
+
+## 4.28.0 (2019-09-05)
 
 * Add ability to customize UI for 3D Secure challenge views
 * Add authentication and lookup transaction status information to BTThreeDSecureInfo

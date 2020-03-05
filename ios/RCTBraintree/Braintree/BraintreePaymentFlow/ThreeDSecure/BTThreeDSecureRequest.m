@@ -22,8 +22,7 @@
 #import "BTURLUtils.h"
 #import "BTConfiguration+ThreeDSecure.h"
 #import "BTThreeDSecureV2Provider.h"
-
-NSString *const BTThreeDSecureAssetsPath = @"/mobile/three-d-secure-redirect/0.1.6";
+#import "BTThreeDSecureV1BrowserSwitchHelper.h"
 
 @interface BTThreeDSecureRequest () <BTThreeDSecureRequestDelegate>
 
@@ -56,18 +55,18 @@ paymentDriverDelegate:(id<BTPaymentFlowDriverDelegate>)delegate {
 
         NSError *integrationError;
 
-        if (self.versionRequested == BTThreeDSecureVersion2) {
-            if (!configuration.cardinalAuthenticationJWT) {
-                [[BTLogger sharedLogger] critical:@"BTThreeDSecureRequest versionRequested is 2, but merchant account is not setup properly."];
-                integrationError = [NSError errorWithDomain:BTThreeDSecureFlowErrorDomain
-                                                       code:BTThreeDSecureFlowErrorTypeConfiguration
-                                                   userInfo:@{NSLocalizedDescriptionKey: @"BTThreeDSecureRequest versionRequested is 2, but merchant account is not setup properly."}];
-            } else if (!self.amount) {
-            [[BTLogger sharedLogger] critical:@"BTThreeDSecureRequest amount can not be nil."];
+        if (self.versionRequested == BTThreeDSecureVersion2 && !configuration.cardinalAuthenticationJWT) {
+            [[BTLogger sharedLogger] critical:@"BTThreeDSecureRequest versionRequested is 2, but merchant account is not setup properly."];
             integrationError = [NSError errorWithDomain:BTThreeDSecureFlowErrorDomain
                                                    code:BTThreeDSecureFlowErrorTypeConfiguration
-                                               userInfo:@{NSLocalizedDescriptionKey: @"BTThreeDSecureRequest amount can not be nil."}];
-            }
+                                               userInfo:@{NSLocalizedDescriptionKey: @"BTThreeDSecureRequest versionRequested is 2, but merchant account is not setup properly."}];
+        }
+
+        if (!self.amount || [self.amount isEqualToNumber:NSDecimalNumber.notANumber]) {
+            [[BTLogger sharedLogger] critical:@"BTThreeDSecureRequest amount can not be nil or NaN."];
+            integrationError = [NSError errorWithDomain:BTThreeDSecureFlowErrorDomain
+                                                   code:BTThreeDSecureFlowErrorTypeConfiguration
+                                               userInfo:@{NSLocalizedDescriptionKey: @"BTThreeDSecureRequest amount can not be nil or NaN."}];
         }
 
         if (integrationError != nil) {
@@ -155,15 +154,19 @@ paymentDriverDelegate:(id<BTPaymentFlowDriverDelegate>)delegate {
 }
 
 - (void)processLookupResult:(BTThreeDSecureLookup *)lookupResult configuration:(BTConfiguration *)configuration {
-    if (lookupResult.requiresUserAuthentication) {
-        if (lookupResult.isThreeDSecureVersion2) {
-            [self performV2Authentication:lookupResult];
-        } else {
-            NSURL *redirectUrl = [self constructV1PaymentURLForLookup:lookupResult configuration:configuration];
-            [self.paymentFlowDriverDelegate onPaymentWithURL:redirectUrl error:nil];
-        }
-    } else {
+    if (!lookupResult.requiresUserAuthentication) {
         [self.paymentFlowDriverDelegate onPaymentComplete:lookupResult.threeDSecureResult error:nil];
+        return;
+    }
+    
+    if (lookupResult.isThreeDSecureVersion2) {
+        [self performV2Authentication:lookupResult];
+    } else {
+        NSURL *browserSwitchURL = [BTThreeDSecureV1BrowserSwitchHelper urlWithScheme:self.paymentFlowDriverDelegate.returnURLScheme
+                                                                           assetsURL:[configuration.json[@"assetsUrl"] asString]
+                                                                 threeDSecureRequest:self
+                                                                  threeDSecureLookup:lookupResult];
+        [self.paymentFlowDriverDelegate onPaymentWithURL:browserSwitchURL error:nil];
     }
 }
 
@@ -178,27 +181,6 @@ paymentDriverDelegate:(id<BTPaymentFlowDriverDelegate>)delegate {
                                                  [apiClient sendAnalyticsEvent:@"ios.three-d-secure.verification-flow.failed"];
                                                  [weakSelf.paymentFlowDriverDelegate onPaymentComplete:nil error:error];
                                              }];
-}
-
-- (NSURL *)constructV1PaymentURLForLookup:(BTThreeDSecureLookup *)lookupResult configuration:(BTConfiguration *)configuration {
-    NSString *acsurl = [NSString stringWithFormat:@"AcsUrl=%@", [lookupResult.acsURL.absoluteString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]]];
-    NSString *pareq = [NSString stringWithFormat:@"PaReq=%@", [self stringByAddingPercentEncodingForRFC3986:lookupResult.PAReq]];
-    NSString *md = [NSString stringWithFormat:@"MD=%@", [lookupResult.MD stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
-    NSString *callbackUrl = [NSString stringWithFormat: @"ReturnUrl=%@%@/redirect.html?redirect_url=%@://x-callback-url/braintree/threedsecure?",
-                             [configuration.json[@"assetsUrl"] asString],
-                             BTThreeDSecureAssetsPath,
-                             [self.paymentFlowDriverDelegate returnURLScheme]
-                             ];
-    callbackUrl = [callbackUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]];
-    NSString *authUrl = [NSString stringWithFormat:@"%@",
-                         [lookupResult.termURL.absoluteString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]]
-                         ];
-
-    NSString *termurl = [NSString stringWithFormat: @"TermUrl=%@", authUrl];
-    NSURL *redirectUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/index.html?%@&%@&%@&%@&%@", [configuration.json[@"assetsUrl"] asString], BTThreeDSecureAssetsPath, acsurl, pareq, md, termurl, callbackUrl]];
-
-    return redirectUrl;
 }
 
 - (void)handleOpenURL:(NSURL *)url {
@@ -228,33 +210,36 @@ paymentDriverDelegate:(id<BTPaymentFlowDriverDelegate>)delegate {
                                                                                     userInfo:@{NSLocalizedDescriptionKey: @"Auth Response is not a valid BTJSON object."}]];
         return;
     }
-
+    
+    BTAPIClient *apiClient = [self.paymentFlowDriverDelegate apiClient];
     BTThreeDSecureResult *result = [[BTThreeDSecureResult alloc] initWithJSON:authBody];
 
-    BTAPIClient *apiClient = [self.paymentFlowDriverDelegate apiClient];
-    if ((self.versionRequested == BTThreeDSecureVersion1 && ![authBody[@"success"] isTrue]) || !result.tokenizedCard) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // NEXT_MAJOR_VERSION we've deprecated `errorMessage` and `success` for public use, but we will continue to use them internally here. Rename to `isSuccess` for parity across SDKs.
+    if ((self.versionRequested == BTThreeDSecureVersion1 && !result.success) || !result.tokenizedCard) {
         [apiClient sendAnalyticsEvent:@"ios.three-d-secure.verification-flow.failed"];
 
         NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithCapacity:1];
         if (result.errorMessage) {
             userInfo[NSLocalizedDescriptionKey] = result.errorMessage;
         }
-
+#pragma clang diagnostic pop
+        
         NSError *error = [NSError errorWithDomain:BTThreeDSecureFlowErrorDomain
                                              code:BTThreeDSecureFlowErrorTypeFailedAuthentication
                                          userInfo:userInfo];
         [self.paymentFlowDriverDelegate onPaymentComplete:nil error:error];
         return;
     }
-
+    
     [self logThreeDSecureCompletedAnalyticsForResult:result withAPIClient:apiClient];
-
     [self.paymentFlowDriverDelegate onPaymentComplete:result error:nil];
 }
 
 - (void)logThreeDSecureCompletedAnalyticsForResult:(BTThreeDSecureResult *)result withAPIClient:(BTAPIClient *)apiClient {
-    [apiClient sendAnalyticsEvent:[NSString stringWithFormat:@"ios.three-d-secure.verification-flow.liability-shift-possible.%@", [self stringForBool:result.liabilityShiftPossible]]];
-    [apiClient sendAnalyticsEvent:[NSString stringWithFormat:@"ios.three-d-secure.verification-flow.liability-shifted.%@", [self stringForBool:result.liabilityShifted]]];
+    [apiClient sendAnalyticsEvent:[NSString stringWithFormat:@"ios.three-d-secure.verification-flow.liability-shift-possible.%@", [self stringForBool:result.tokenizedCard.threeDSecureInfo.liabilityShiftPossible]]];
+    [apiClient sendAnalyticsEvent:[NSString stringWithFormat:@"ios.three-d-secure.verification-flow.liability-shifted.%@", [self stringForBool:result.tokenizedCard.threeDSecureInfo.liabilityShifted]]];
     [apiClient sendAnalyticsEvent:@"ios.three-d-secure.verification-flow.completed"];
 }
 
@@ -264,13 +249,6 @@ paymentDriverDelegate:(id<BTPaymentFlowDriverDelegate>)delegate {
 
 - (NSString *)paymentFlowName {
     return @"three-d-secure";
-}
-
-- (NSString *)stringByAddingPercentEncodingForRFC3986:(NSString *)string {
-    NSString *unreserved = @"-._~/?";
-    NSMutableCharacterSet *allowed = NSMutableCharacterSet.alphanumericCharacterSet;
-    [allowed addCharactersInString:unreserved];
-    return [string stringByAddingPercentEncodingWithAllowedCharacters:allowed];
 }
 
 - (NSString *)stringForBool:(BOOL)boolean {

@@ -12,14 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  * @typedef CardinalSessionEnvironment
  * @brief List of CardinalSession Enviroments
- * @constant CardinalSessionEnvironmentSandbox Sandbox Environment
- * @constant CardinalSessionEnvironmentTesting Testing Environment
  * @constant CardinalSessionEnvironmentStaging Staging Environment
  * @constant CardinalSessionEnvironmentProduction Production Environment
  */
 typedef NS_ENUM(NSUInteger, CardinalSessionEnvironment) {
-    CardinalSessionEnvironmentSandbox,
-    CardinalSessionEnvironmentTesting,
     CardinalSessionEnvironmentStaging,
     CardinalSessionEnvironmentProduction
 };
@@ -115,10 +111,25 @@ extern NSUInteger const CardinalSessionTimeoutDEFAULT;
 
 /*!
  * @property timeout Timeout in Milliseconds
+ * @brief This property is deprecated. Use "requestTimeout" property as it's replacement.
+ * Default value is CardinalSessionTimeoutDEFAULT (about 8 seconds).
+ */
+@property (nonatomic, assign) NSUInteger timeout DEPRECATED_ATTRIBUTE;
+
+/*!
+ * @property requestTimeout Timeout in Milliseconds
  * @brief Sets the default timeout in milliseconds for how long the SDK will wait for a response from a Cardinal server for all operations. See preset values for Standard and Short timeouts.
  * Default value is CardinalSessionTimeoutDEFAULT (about 8 seconds).
  */
-@property (nonatomic, assign) NSUInteger timeout;
+@property (nonatomic, assign) NSUInteger requestTimeout;
+
+
+/*!
+ * @property timeout Challenge Screen Timeout in Minutes.
+ * @brief Sets the time in Minute before how long the SDK Challenge Screen will timeout. Minimum timeout is 5 minutes.
+ * Default value is 5 minutes.
+ */
+@property (nonatomic, assign) NSUInteger challengeTimeout;
 
 /*!
  * @property proxyServerURL Proxy Server URL
@@ -156,11 +167,24 @@ extern NSUInteger const CardinalSessionTimeoutDEFAULT;
 @property (nonatomic, strong) UiCustomization *uiCustomization;
 
 /*!
+ * @property darkModeUiCustomization UI Customization of Dark Mode Challenge Views
+ * @brief Set the customization of different UITypes for Dark Mode Challege Views.
+ * Default value is nil.
+ */
+@property (nonatomic, strong) UiCustomization *darkModeUiCustomization;
+
+/*!
  * @property enableDFSync Synchronize Setup Task with Lasso
  * @brief Enable synchronize setup task.
- * Default value is false.
+ * Default value is true.
  */
 @property (nonatomic) BOOL enableDFSync;
+
+/*!
+ * @property threeDSRequestorAppURL Three DS Requester APP URL
+ * @brief Merchant app declaring their URL within the CReq message so that the Authentication app can call the Merchant app after OOB authentication has occurred. Each transaction would require a unique Transaction ID by using the SDK Transaction ID.
+ */
+@property (nonatomic, copy, nullable) NSString *threeDSRequestorAppURL;
 
 @end
 

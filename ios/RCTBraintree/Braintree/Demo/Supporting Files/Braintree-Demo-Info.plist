@@ -41,7 +41,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>4.28.0</string>
+	<string>4.32.1</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -56,11 +56,12 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>4.28.0</string>
+	<string>4.32.1</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>com.braintreepayments.Demo.payments</string>
 		<string>com.venmo.touch.v2</string>
+		<string>paypal</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -70,7 +71,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Fraud detection usage</string>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch Screen</string>
 	<key>UIRequiredDeviceCapabilities</key>
