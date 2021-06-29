@@ -21,12 +21,13 @@ Pod::Spec.new do |s|
 
   s.module_name = 'RCTBraintree'
   s.requires_arc   = true
-  s.platform       = :ios, "8.0"
+  s.platform       = :ios, "9.0"
 
   s.dependency "React"
   s.dependency "Braintree"
   s.dependency "Braintree/UI"
   s.dependency "Braintree/Core"
+  s.dependency 'Braintree/Apple-Pay'
   s.dependency "Braintree/3D-Secure"
   s.dependency "Braintree/Card"
   s.dependency "Braintree/DataCollector"

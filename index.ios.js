@@ -138,6 +138,18 @@ var Braintree = {
       });
     });
   },
+
+  showApplePayViewController(options = {}) {
+    return new Promise(function(resolve, reject) {
+      if (Platform.OS === 'ios') {
+        RCTBraintree.showApplePayViewController(options, function(err, nonce) {
+            nonce != null ? resolve(nonce) : reject(err);
+          });
+      } else {
+        reject('showApplePayViewController is only available on ios devices');
+      }
+    });
+  },
 };
 
 module.exports = Braintree;
