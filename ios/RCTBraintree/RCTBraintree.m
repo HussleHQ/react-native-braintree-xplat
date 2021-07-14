@@ -260,12 +260,16 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         self.callback = callback;
+        NSString *countryCode = @"US";
+        NSString *currencyCode = @"USD";
         PKPaymentRequest *paymentRequest = [[PKPaymentRequest alloc] init];
         NSArray *items = options[@"paymentSummaryItems"];
         NSLog(@"Options items: %@", items);
         NSMutableArray *paymentSummaryItems = [NSMutableArray new];
         for(NSDictionary *item in items) {
             NSString *label = item[@"label"];
+            countryCode = item[@"countryCode"];
+            currencyCode = item[@"currencyCode"];
             NSString *amount = [item[@"amount"] stringValue];
             [paymentSummaryItems addObject:[PKPaymentSummaryItem summaryItemWithLabel:label amount:[NSDecimalNumber decimalNumberWithString:amount]]];
         }
@@ -278,8 +282,8 @@ RCT_EXPORT_METHOD(showApplePayViewController:(NSDictionary *)options callback:(R
         paymentRequest.merchantIdentifier = options[@"merchantIdentifier"];;
         paymentRequest.supportedNetworks = @[PKPaymentNetworkVisa, PKPaymentNetworkMasterCard, PKPaymentNetworkAmex, PKPaymentNetworkDiscover];
         paymentRequest.merchantCapabilities = PKMerchantCapability3DS;
-        paymentRequest.currencyCode = @"USD";
-        paymentRequest.countryCode = @"US";
+        paymentRequest.currencyCode = currencyCode;
+        paymentRequest.countryCode = countryCode;
         if ([paymentRequest respondsToSelector:@selector(setShippingType:)]) {
             paymentRequest.shippingType = PKShippingTypeDelivery;
         }
